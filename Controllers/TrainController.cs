@@ -36,7 +36,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainById(int id)
         {
-            var train = await _context.Trains.Where(s => s.Id == id).ToListAsync();
+            var train = await _context.Trains.FindAsync(id);
 
             if (train == null)
                 return NotFound();
@@ -59,6 +59,7 @@ namespace RailwayManagementSystemAPI.Controllers
                 Capacity = trainDto.Capacity,
                 Type = trainDto.Type
             };
+
             await _context.Trains.AddAsync(train);
             await _context.SaveChangesAsync();
 
@@ -70,8 +71,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// </summary>
         /// <param name="id">The identifier of the train to update.</param>
         /// <param name="trainDto">The updated train data.</param>
-        /// <returns>A 204 No Content response if the update is successful; 400 Bad Request if the identifier does not match; 404
-        /// Not Found if the train does not exist.</returns>
+        /// <returns>A 204 No Content response if the update is successful; 404 Not Found if the train does not exist.</returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTrain(int id, [FromBody] TrainDto trainDto)
         {
