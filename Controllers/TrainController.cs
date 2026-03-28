@@ -7,7 +7,7 @@ using RailwayManagementSystemAPI.Models;
 namespace RailwayManagementSystemAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/trains")]
     public class TrainController : ControllerBase
     {
         private readonly RailwayContext _context;
