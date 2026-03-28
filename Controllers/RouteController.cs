@@ -46,7 +46,101 @@ namespace RailwayManagementSystemAPI.Controllers
             await _context.Routes.AddAsync(route);
             await _context.SaveChangesAsync();
 
-            return Ok(route);
+            return CreatedAtAction(nameof(GetRouteById), new { id = route.Id }, route);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetRouteById(int id)
+        {
+            RouteResponseDto? response = await _context.Routes
+                .Where(r => r.Id == id)
+                .Select(r => new RouteResponseDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Stations = r.RouteStations
+                        .OrderBy(rs => rs.Order)
+                        .Select(rs => new RouteStationResponseDto
+                        {
+                            StationName = rs.Station.Name,
+                            Order = rs.Order
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (response == null)
+                return NotFound();
+
+            return Ok(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetRoutes()
+        {
+            List<RouteResponseDto> routes = await _context.Routes
+                .Select(r => new RouteResponseDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Stations = r.RouteStations
+                        .OrderBy(rs => rs.Order)
+                        .Select(rs => new RouteStationResponseDto
+                        {
+                            StationName = rs.Station.Name,
+                            Order = rs.Order
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return Ok(routes);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRoute(int id, [FromBody] CreateRouteDto dto)
+        {
+            var duplicates = dto.Stations
+                .GroupBy(s => s.Order)
+                .Any(g => g.Count() > 1);
+
+            if (duplicates)
+                return BadRequest("Duplicate order values are not allowed.");
+
+            var route = await _context.Routes
+                .Include(r => r.RouteStations)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (route == null)
+                return NotFound();
+
+            route.Name = dto.Name;
+
+            _context.RouteStations.RemoveRange(route.RouteStations);
+
+            route.RouteStations = dto.Stations
+                .Select(s => new RouteStation
+                {
+                    StationId = s.StationId,
+                    Order = s.Order
+                })
+                .ToList();
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRoute(int id)
+        {
+            var rowsAffected = await _context.Routes
+                .Where(r => r.Id == id)
+                .ExecuteDeleteAsync();
+
+            if (rowsAffected == 0)
+                return NotFound();
+
+            return NoContent();
         }
     }
 }

@@ -24,7 +24,23 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTrains()
         {
-            var trains = await _context.Trains.ToListAsync();
+            var trains = await _context.Trains
+                .Select(t => new TrainResponseDto
+                {
+                    Id = t.Id,
+                    SerialNumber = t.SerialNumber,
+                    TrainType = new TrainTypeResponseDto
+                    {
+                        Id = t.TrainType.Id,
+                        Name = t.TrainType.Name,
+                        MaxSpeed = t.TrainType.MaxSpeed,
+                        Capacity = t.TrainType.Capacity,
+                        Manufacturer = t.TrainType.Manufacturer,
+                        TypeOfTrain = t.TrainType.Type
+                    }
+                })
+                .ToListAsync();
+
             return Ok(trains);
         }
 
@@ -36,7 +52,22 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainById(int id)
         {
-            var train = await _context.Trains.FindAsync(id);
+            var train = await _context.Trains
+                .Select(t => new TrainResponseDto
+                {
+                    Id = t.Id,
+                    SerialNumber = t.SerialNumber,
+                    TrainType = new TrainTypeResponseDto
+                    {
+                        Id = t.TrainType.Id,
+                        Name = t.TrainType.Name,
+                        MaxSpeed = t.TrainType.MaxSpeed,
+                        Capacity = t.TrainType.Capacity,
+                        Manufacturer = t.TrainType.Manufacturer,
+                        TypeOfTrain = t.TrainType.Type
+                    }
+                })
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (train == null)
                 return NotFound();
@@ -50,14 +81,18 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="trainDto">The train entity to add.</param>
         /// <returns>A CreatedAtActionResult containing the created train.</returns>
         [HttpPost]
-        public async Task<IActionResult> CreateTrain([FromBody] TrainDto trainDto)
+        public async Task<IActionResult> CreateTrain([FromBody] CreateTrainDto trainDto)
         {
+            var exist = await _context.TrainTypes
+                .AnyAsync(tt => tt.Id == trainDto.TrainTypeId);
+
+            if (!exist)
+                return BadRequest($"TrainTypeId {trainDto.TrainTypeId} does not exist!");
+
             var train = new Train
             {
-                Name = trainDto.Name,
-                MaxSpeed = trainDto.MaxSpeed,
-                Capacity = trainDto.Capacity,
-                Type = trainDto.Type
+                SerialNumber = trainDto.SerialNumber,
+                TrainTypeId = trainDto.TrainTypeId
             };
 
             await _context.Trains.AddAsync(train);
@@ -73,15 +108,19 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="trainDto">The updated train data.</param>
         /// <returns>A 204 No Content response if the update is successful; 404 Not Found if the train does not exist.</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTrain(int id, [FromBody] TrainDto trainDto)
+        public async Task<IActionResult> UpdateTrain(int id, [FromBody] CreateTrainDto trainDto)
         {
+            var exist = await _context.TrainTypes
+                .AnyAsync(tt => tt.Id == trainDto.TrainTypeId);
+
+            if (!exist)
+                return BadRequest($"TrainTypeId {trainDto.TrainTypeId} does not exist!");
+
             var rowsAffected = await _context.Trains
                 .Where(t => t.Id == id)
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(t => t.Name, trainDto.Name)
-                    .SetProperty(t => t.MaxSpeed, trainDto.MaxSpeed)
-                    .SetProperty(t => t.Capacity, trainDto.Capacity)
-                    .SetProperty(t => t.Type, trainDto.Type)
+                    .SetProperty(t => t.TrainTypeId, trainDto.TrainTypeId)
+                    .SetProperty(t => t.SerialNumber, trainDto.SerialNumber)
                 );
 
             if (rowsAffected == 0)

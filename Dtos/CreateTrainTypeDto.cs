@@ -3,19 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RailwayManagementSystemAPI.Dtos
 {
-    public class TrainDto
+    public class CreateTrainTypeDto
     {
         [Required]
         [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [Range(0,500)]
+        [Range(1, 500)]
         public int MaxSpeed { get; set; }
 
-        [Range(0,2000)]
+        [Range(1, 2000)]
         public int Capacity { get; set; }
 
         [EnumDataType(typeof(TrainType))]
-        public TrainType Type { get; set; }
+
+        [MaxLength(100)]
+        public string Manufacturer { get; set; } = string.Empty;
+
+        public TrainType Type { get; set; } = null!;
     }
 }

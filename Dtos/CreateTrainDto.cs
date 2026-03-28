@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RailwayManagementSystemAPI.Dtos
 {
-    public class CreateRouteDto
+    public class CreateTrainDto
     {
         [Required]
-        public string Name { get; set; } = string.Empty;
+        public int TrainTypeId { get; set; }
 
         [Required]
-        public List<RouteStationDto> Stations { get; set; } = [];
+        [MaxLength(50)]
+        public string SerialNumber { get; set; } = string.Empty;
     }
 }
