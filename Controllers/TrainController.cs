@@ -18,9 +18,9 @@ namespace RailwayManagementSystemAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves all trains from the data store.
+        /// Retrieves all trains with their associated train type details.
         /// </summary>
-        /// <returns>An IActionResult containing the list of trains.</returns>
+        /// <returns>An IActionResult containing a list of TrainResponseDto objects.</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllTrains()
         {
@@ -48,7 +48,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// Retrieves a train by its unique identifier.
         /// </summary>
         /// <param name="id">The unique identifier of the train.</param>
-        /// <returns>An IActionResult containing the train if found; otherwise, a NotFound result.</returns>
+        /// <returns>An IActionResult containing the train data if found; otherwise, NotFound.</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainById(int id)
         {
@@ -76,10 +76,10 @@ namespace RailwayManagementSystemAPI.Controllers
         }
 
         /// <summary>
-        /// Creates a new train and returns a response with the location of the created resource.
+        /// Creates a new train and returns the created resource.
         /// </summary>
-        /// <param name="trainDto">The train entity to add.</param>
-        /// <returns>A CreatedAtActionResult containing the created train.</returns>
+        /// <param name="trainDto">The data for the train to create.</param>
+        /// <returns>A 201 Created response with the created train, or 400 Bad Request if the train type does not exist.</returns>
         [HttpPost]
         public async Task<IActionResult> CreateTrain([FromBody] CreateTrainDto trainDto)
         {
@@ -102,11 +102,12 @@ namespace RailwayManagementSystemAPI.Controllers
         }
 
         /// <summary>
-        /// Updates the details of an existing train.
+        /// Updates an existing train with the specified values.
         /// </summary>
         /// <param name="id">The identifier of the train to update.</param>
-        /// <param name="trainDto">The updated train data.</param>
-        /// <returns>A 204 No Content response if the update is successful; 404 Not Found if the train does not exist.</returns>
+        /// <param name="trainDto">The data transfer object containing updated train information.</param>
+        /// <returns>A 204 No Content response if the update is successful; 400 Bad Request if the specified TrainTypeId does not
+        /// exist; 404 Not Found if the train is not found.</returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTrain(int id, [FromBody] CreateTrainDto trainDto)
         {
@@ -132,7 +133,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <summary>
         /// Deletes the train with the specified identifier.
         /// </summary>
-        /// <param name="id">The unique identifier of the train to delete.</param>
+        /// <param name="id">The identifier of the train to delete.</param>
         /// <returns>A 204 No Content response if the train was deleted; otherwise, a 404 Not Found response if the train does
         /// not exist.</returns>
         [HttpDelete("{id}")]
