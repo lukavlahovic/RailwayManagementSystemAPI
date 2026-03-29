@@ -53,6 +53,7 @@ namespace RailwayManagementSystemAPI.Controllers
         public async Task<IActionResult> GetTrainById(int id)
         {
             var train = await _context.Trains
+                .Where(t => t.Id == id)
                 .Select(t => new TrainResponseDto
                 {
                     Id = t.Id,
@@ -67,7 +68,7 @@ namespace RailwayManagementSystemAPI.Controllers
                         TypeOfTrain = t.TrainType.Type
                     }
                 })
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync();
 
             if (train == null)
                 return NotFound();
