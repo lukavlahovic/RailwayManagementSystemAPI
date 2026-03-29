@@ -51,7 +51,27 @@ namespace RailwayManagementSystemAPI.Controllers
             await _context.Routes.AddAsync(route);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetRouteById), new { id = route.Id }, route);
+            var response = await _context.Routes
+                .Where(r => r.Id == route.Id)
+                .Select(r => new RouteResponseDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    Stations = r.RouteStations
+                        .OrderBy(rs => rs.Order)
+                        .Select(rs => new RouteStationResponseDto
+                        {
+                            StationName = rs.Station.Name,
+                            Order = rs.Order
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (response == null)
+                return NotFound();
+
+            return CreatedAtAction(nameof(GetRouteById), new { id = response.Id }, response);
         }
 
         /// <summary>

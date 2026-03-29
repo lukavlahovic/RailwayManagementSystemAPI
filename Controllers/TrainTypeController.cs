@@ -53,6 +53,7 @@ namespace RailwayManagementSystemAPI.Controllers
                     Name = tt.Name,
                     MaxSpeed = tt.MaxSpeed,
                     Capacity = tt.Capacity,
+                    Manufacturer = tt.Manufacturer,
                     TypeOfTrain = tt.Type
                 })
                 .ToListAsync();
@@ -75,6 +76,7 @@ namespace RailwayManagementSystemAPI.Controllers
                     Name = tt.Name,
                     MaxSpeed = tt.MaxSpeed,
                     Capacity = tt.Capacity,
+                    Manufacturer = tt.Manufacturer,
                     TypeOfTrain = tt.Type
                 })
                 .FirstOrDefaultAsync(tt => tt.Id == id);

@@ -15,11 +15,10 @@ namespace RailwayManagementSystemAPI.Dtos
         [Range(1, 2000)]
         public int Capacity { get; set; }
 
-        [EnumDataType(typeof(TrainType))]
-
         [MaxLength(100)]
         public string Manufacturer { get; set; } = string.Empty;
 
-        public TrainType Type { get; set; } = null!;
+        [EnumDataType(typeof(TypeOfTrain))]
+        public TypeOfTrain Type { get; set; }
     }
 }
