@@ -5,5 +5,8 @@
         public string StationName { get; set; } = string.Empty;
 
         public int Order { get; set; }
+
+        public int ArrivalOffsetMinutes { get; set; }
+        public int StopDuration { get; set; }
     }
 }

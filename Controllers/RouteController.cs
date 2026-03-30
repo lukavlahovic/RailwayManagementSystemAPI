@@ -44,7 +44,9 @@ namespace RailwayManagementSystemAPI.Controllers
                 .Select(s => new RouteStation
                 {
                     StationId = s.StationId,
-                    Order = s.Order
+                    Order = s.Order,
+                    ArrivalOffsetMinutes = s.ArrivalOffsetMinutes,
+                    StopDuration = s.StopDuration
                 })
                 .ToList();
 
@@ -62,7 +64,9 @@ namespace RailwayManagementSystemAPI.Controllers
                         .Select(rs => new RouteStationResponseDto
                         {
                             StationName = rs.Station.Name,
-                            Order = rs.Order
+                            Order = rs.Order,
+                            ArrivalOffsetMinutes = rs.ArrivalOffsetMinutes,
+                            StopDuration = rs.StopDuration
                         })
                         .ToList()
                 })
@@ -93,7 +97,9 @@ namespace RailwayManagementSystemAPI.Controllers
                         .Select(rs => new RouteStationResponseDto
                         {
                             StationName = rs.Station.Name,
-                            Order = rs.Order
+                            Order = rs.Order,
+                            ArrivalOffsetMinutes = rs.ArrivalOffsetMinutes,
+                            StopDuration = rs.StopDuration
                         }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -121,7 +127,9 @@ namespace RailwayManagementSystemAPI.Controllers
                         .Select(rs => new RouteStationResponseDto
                         {
                             StationName = rs.Station.Name,
-                            Order = rs.Order
+                            Order = rs.Order,
+                            ArrivalOffsetMinutes = rs.ArrivalOffsetMinutes,
+                            StopDuration = rs.StopDuration
                         })
                         .ToList()
                 })
@@ -161,7 +169,9 @@ namespace RailwayManagementSystemAPI.Controllers
                 .Select(s => new RouteStation
                 {
                     StationId = s.StationId,
-                    Order = s.Order
+                    Order = s.Order,
+                    ArrivalOffsetMinutes = s.ArrivalOffsetMinutes,
+                    StopDuration = s.StopDuration
                 })
                 .ToList();
 

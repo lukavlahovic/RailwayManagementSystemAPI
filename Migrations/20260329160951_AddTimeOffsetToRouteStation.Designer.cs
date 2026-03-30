@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RailwayManagementSystemAPI.Data;
 
@@ -11,9 +12,11 @@ using RailwayManagementSystemAPI.Data;
 namespace RailwayManagementSystemAPI.Migrations
 {
     [DbContext(typeof(RailwayContext))]
-    partial class RailwayContextModelSnapshot : ModelSnapshot
+    [Migration("20260329160951_AddTimeOffsetToRouteStation")]
+    partial class AddTimeOffsetToRouteStation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,6 +53,9 @@ namespace RailwayManagementSystemAPI.Migrations
                     b.Property<int>("ArrivalOffsetMinutes")
                         .HasColumnType("int");
 
+                    b.Property<int>("DepartureOffsetMinutes")
+                        .HasColumnType("int");
+
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
@@ -57,9 +63,6 @@ namespace RailwayManagementSystemAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("StationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StopDuration")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

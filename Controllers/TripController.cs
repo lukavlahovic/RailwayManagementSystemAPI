@@ -103,7 +103,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("date")]
         public async Task<IActionResult> GetTripsByDate([FromQuery] DateTime date)
         {
-            var trips = _context.Trip
+            var trips = await _context.Trip
                 .Where(t => t.DepartureTime.Date == date.Date)
                 .Select(t => new TripScheduleDto
                 {
@@ -117,6 +117,48 @@ namespace RailwayManagementSystemAPI.Controllers
                 .ToListAsync();
 
             return Ok(trips);
+        }
+
+        [HttpGet("station/{station}/schedule")]
+        public async Task<IActionResult> getStationSchedule(int stationId)
+        {
+            var now = DateTime.Now;
+
+            var schedule = await _context.Trip
+                .Where(t => t.ArrivalTime > now)
+                .Where(t => t.Route.RouteStations
+                    .Any(rs => rs.StationId == stationId))
+                .Select(t => new
+                {
+                    Train = t.Train.SerialNumber,
+                    Route = t.Route.Name,
+                    t.DepartureTime,
+                    ArrivalOffsetMinutes = t.Route.RouteStations
+                        .Where(rs => rs.StationId == stationId)
+                        .Select(rs => rs.ArrivalOffsetMinutes)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            var result = schedule
+                .Select(s =>
+                {
+                    var arrival = s.DepartureTime.AddMinutes(s.ArrivalOffsetMinutes);
+                    var minutes = (arrival - now).TotalMinutes;
+
+                    return new StationScheduleDto
+                    {
+                        Train = s.Train,
+                        Route = s.Route,
+                        ArrivalTime = arrival,
+                        MinutesUntilArrival = minutes
+                    };
+                })
+                .Where(x => x.MinutesUntilArrival >= -5) // show departed train for 5 minutes
+                .OrderBy(x => x.ArrivalTime)
+                .ToList();
+
+            return Ok();
         }
     }
 }
