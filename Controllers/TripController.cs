@@ -48,6 +48,7 @@ namespace RailwayManagementSystemAPI.Controllers
                 .Where(t => t.Id == trip.Id)
                 .Select(t => new TripResponseDto
                 {
+                    Id = t.Id,
                     SerialNumber = t.Train.SerialNumber,
                     TrainTypeName = t.Train.TrainType.Name,
                     RouteName = t.Route.Name,
@@ -66,6 +67,7 @@ namespace RailwayManagementSystemAPI.Controllers
                 .Where(t => t.Id == id)
                 .Select(t => new TripResponseDto
                 {
+                    Id = t.Id,
                     SerialNumber = t.Train.SerialNumber,
                     TrainTypeName = t.Train.TrainType.Name,
                     RouteName = t.Route.Name,
