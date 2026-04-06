@@ -13,6 +13,7 @@ namespace RailwayManagementSystemAPI.Data
         public DbSet<Models.Route> Routes { get; set; }
         public DbSet<Models.RouteStation> RouteStations { get; set; }
         public DbSet<Models.Trip> Trip { get; set; }
+        public DbSet<Models.Delay> Delays { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,19 @@ namespace RailwayManagementSystemAPI.Data
                 .HasOne(r => r.Route)
                 .WithMany()
                 .HasForeignKey(r => r.RouteId);
+
+            modelBuilder.Entity<Delay>()
+                .HasOne(d => d.Trip)
+                .WithMany()
+                .HasForeignKey(d => d.TripId);
+
+            modelBuilder.Entity<Delay>()
+                .HasOne(d => d.Station)
+                .WithMany()
+                .HasForeignKey(d => d.StationId);
+
+            modelBuilder.Entity<Delay>()
+                .HasIndex(d => new { d.TripId, d.StationId });
         }
     }
 }
