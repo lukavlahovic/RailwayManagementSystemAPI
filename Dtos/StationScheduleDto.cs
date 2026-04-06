@@ -6,7 +6,10 @@
 
         public string Route { get; set; } = string.Empty;
 
-        public DateTime ArrivalTime { get; set; }
+        public DateTime RealArrivalTime { get; set; }
+        public DateTime PlannedArrivalTime { get; set; }
+
+        public int TotalDelayMinutes { get; set; }
 
         public double MinutesUntilArrival { get; set; }
     }

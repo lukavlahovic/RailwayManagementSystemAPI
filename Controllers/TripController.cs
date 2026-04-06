@@ -130,32 +130,65 @@ namespace RailwayManagementSystemAPI.Controllers
                     .Any(rs => rs.StationId == stationId))
                 .Select(t => new
                 {
+                    t.Id,
                     Train = t.Train.SerialNumber,
                     Route = t.Route.Name,
                     t.DepartureTime,
-                    ArrivalOffsetMinutes = t.Route.RouteStations
+                    Station = t.Route.RouteStations
                         .Where(rs => rs.StationId == stationId)
-                        .Select(rs => rs.ArrivalOffsetMinutes)
-                        .FirstOrDefault()
+                        .Select(rs => new
+                        {
+                            rs.Order,
+                            rs.ArrivalOffsetMinutes
+
+                        })
+                        .FirstOrDefault(),
+                    AllStations = t.Route.RouteStations
+                        .Select(rs => new
+                        {
+                            rs.Order,
+                            rs.StationId
+                        })
+                        .ToList()
                 })
+                .ToListAsync();
+
+            var delays = await _context.Delays
+                .Where(d => schedule.Select(t => t.Id).Contains(d.TripId))
                 .ToListAsync();
 
             var result = schedule
                 .Select(s =>
                 {
-                    var arrival = s.DepartureTime.AddMinutes(s.ArrivalOffsetMinutes);
-                    var minutes = (arrival - now).TotalMinutes;
+                    var plannedArrival = s.DepartureTime.AddMinutes(s.Station!.ArrivalOffsetMinutes);
+
+                    // taking to account only stations before the current station as well as the current station it self
+                    var validStationIds = s.AllStations
+                        .Where(s1 => s1.Order <= s.Station.Order)
+                        .Select(s1 => s1.StationId)
+                        .ToList();
+
+                    //calculating delay
+                    var totalDelay = delays
+                        .Where(d => d.TripId == s.Id && validStationIds.Contains(d.StationId))
+                        .Sum(d => d.DelayMinutes);
+
+                    //delay for the station
+                    var realArrival = plannedArrival.AddMinutes(totalDelay);
+                    var minutes = (realArrival - now).TotalMinutes;
 
                     return new StationScheduleDto
                     {
                         Train = s.Train,
                         Route = s.Route,
-                        ArrivalTime = arrival,
+                        PlannedArrivalTime = plannedArrival,
+                        RealArrivalTime = realArrival,
+                        TotalDelayMinutes = totalDelay,
                         MinutesUntilArrival = minutes
                     };
                 })
                 .Where(x => x.MinutesUntilArrival >= -5) // show departed train for 5 minutes
-                .OrderBy(x => x.ArrivalTime)
+                .OrderBy(x => x.RealArrivalTime)
                 .ToList();
 
             return Ok(result);
