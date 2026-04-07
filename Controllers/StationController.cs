@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
+using RailwayManagementSystemAPI.Services;
 
 namespace RailwayManagementSystemAPI.Controllers
 {
@@ -10,11 +10,11 @@ namespace RailwayManagementSystemAPI.Controllers
     [Route("api/stations")]
     public class StationController : ControllerBase
     {
-        private readonly RailwayContext _context;
+        private readonly IStationService _stationService;
 
-        public StationController(RailwayContext context)
+        public StationController(IStationService stationService)
         {
-            _context = context;
+            _stationService = stationService;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllStations()
         {
-            var stations = await _context.Stations.ToListAsync();
+            var stations = await _stationService.GetAllStationsAsync();
             return Ok(stations);
         }
 
@@ -36,7 +36,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStationById(int id)
         {
-            var station = await _context.Stations.FindAsync(id);
+            var station = await _stationService.GetStationByIdAsync(id);
 
             if (station == null)
                 return NotFound();
@@ -52,16 +52,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateStation([FromBody] StationDto stationDto)
         {
-            var station = new Station
-            {
-                Name = stationDto.Name,
-                City = stationDto.City,
-                Country = stationDto.Country,
-                NumberOfPlatforms = stationDto.NumberOfPlatforms
-            };
-
-            await _context.Stations.AddAsync(station);
-            await _context.SaveChangesAsync();
+            var station = await _stationService.CreateStationAsync(stationDto);
 
             return CreatedAtAction(nameof(GetStationById), new { id = station.Id }, station);
         }
@@ -75,16 +66,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStation(int id, [FromBody] StationDto stationDto)
         {
-            var rowsAffected = await _context.Stations
-                .Where(s => s.Id == id)
-                .ExecuteUpdateAsync(setter => setter
-                    .SetProperty(s => s.Name, stationDto.Name)
-                    .SetProperty(s => s.City, stationDto.City)
-                    .SetProperty(s => s.Country, stationDto.Country)
-                    .SetProperty(s => s.NumberOfPlatforms, stationDto.NumberOfPlatforms)
-                );
+            var isUpdated = await _stationService.UpdateStationAsync(id, stationDto);
 
-            if (rowsAffected == 0)
+            if (!isUpdated)
                 return NotFound();
 
             return NoContent();
@@ -99,11 +83,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStation(int id)
         {
-            var rowsAffected = await _context.Stations
-                .Where(s => s.Id == id)
-                .ExecuteDeleteAsync();
+            var isDeleted = await _stationService.DeleteStationAsync(id);
 
-            if (rowsAffected == 0)
+            if (!isDeleted)
                 return NotFound();
 
             return NoContent();
