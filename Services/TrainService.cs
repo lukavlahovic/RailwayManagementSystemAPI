@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
+using RailwayManagementSystemAPI.Exceptions;
 using RailwayManagementSystemAPI.Models;
 
 namespace RailwayManagementSystemAPI.Services
@@ -14,13 +15,13 @@ namespace RailwayManagementSystemAPI.Services
             _context = context;
         }
 
-        public async Task<(TrainResponseDto? train, string? error)> CreateTrainAsync(CreateTrainDto dto)
+        public async Task<TrainResponseDto> CreateTrainAsync(CreateTrainDto dto)
         {
-            var exist = await _context.TrainTypes
+            var trainTypeExists = await _context.TrainTypes
                 .AnyAsync(tt => tt.Id == dto.TrainTypeId);
 
-            if (!exist)
-                return (null, $"TrainTypeId {dto.TrainTypeId} does not exist!");
+            if (!trainTypeExists)
+                throw new BadRequestException($"TrainTypeId {dto.TrainTypeId} does not exist!");
 
             var train = new Train
             {
@@ -31,17 +32,17 @@ namespace RailwayManagementSystemAPI.Services
             await _context.Trains.AddAsync(train);
             await _context.SaveChangesAsync();
 
-            var resonse = await GetTrainByIdAsync(train.Id);
-            return (resonse, null);
+            return await GetTrainByIdAsync(train.Id);
         }
 
-        public async Task<bool> DeleteTrainAsync(int id)
+        public async Task DeleteTrainAsync(int id)
         {
             var rowsAffected = await _context.Trains
                 .Where(t => t.Id == id)
                 .ExecuteDeleteAsync();
 
-            return rowsAffected > 0;
+            if (rowsAffected == 0)
+                throw new NotFoundException("NotFound");
         }
 
         public async Task<List<TrainResponseDto>> GetAllTrainsAsync()
@@ -64,9 +65,9 @@ namespace RailwayManagementSystemAPI.Services
                 .ToListAsync();
         }
 
-        public async Task<TrainResponseDto?> GetTrainByIdAsync(int id)
+        public async Task<TrainResponseDto> GetTrainByIdAsync(int id)
         {
-            return await _context.Trains
+            var train = await _context.Trains
                 .Where(t => t.Id == id)
                 .Select(t => new TrainResponseDto
                 {
@@ -83,15 +84,20 @@ namespace RailwayManagementSystemAPI.Services
                     }
                 })
                 .FirstOrDefaultAsync();
+
+            if (train == null)
+                throw new NotFoundException($"Train with id {id} not found");
+
+            return train;
         }
 
-        public async Task<string?> UpdateTrainAsync(int id, CreateTrainDto dto)
+        public async Task UpdateTrainAsync(int id, CreateTrainDto dto)
         {
-            var exist = await _context.TrainTypes
+            var trainTypeExists = await _context.TrainTypes
                 .AnyAsync(tt => tt.Id == dto.TrainTypeId);
 
-            if (!exist)
-                return $"TrainTypeId {dto.TrainTypeId} does not exist!";
+            if (!trainTypeExists)
+                throw new BadRequestException($"TrainTypeId {dto.TrainTypeId} does not exist!");
 
             var rowsAffected = await _context.Trains
                 .Where(t => t.Id == id)
@@ -101,9 +107,7 @@ namespace RailwayManagementSystemAPI.Services
                 );
 
             if (rowsAffected == 0)
-                return "NotFound";
-
-            return null;
+                throw new NotFoundException("NotFound");
         }
     }
 }

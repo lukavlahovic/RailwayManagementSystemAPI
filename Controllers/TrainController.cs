@@ -40,9 +40,6 @@ namespace RailwayManagementSystemAPI.Controllers
         {
             var train = await _trainService.GetTrainByIdAsync(id);
 
-            if (train == null)
-                return NotFound();
-
             return Ok(train);
         }
 
@@ -54,11 +51,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTrain([FromBody] CreateTrainDto trainDto)
         {
-            var (train,error) = await _trainService.CreateTrainAsync(trainDto);
-            if (error != null)
-                return BadRequest(error);
+            var train = await _trainService.CreateTrainAsync(trainDto);
 
-            return CreatedAtAction(nameof(GetTrainById), new { id = train!.Id }, train);
+            return CreatedAtAction(nameof(GetTrainById), new { id = train.Id }, train);
         }
 
         /// <summary>
@@ -71,12 +66,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTrain(int id, [FromBody] CreateTrainDto trainDto)
         {
-            var error = await _trainService.UpdateTrainAsync(id, trainDto);
-
-            if (error == "NotFound")
-                return NotFound();
-            if (error != null)
-                return BadRequest(error);
+            await _trainService.UpdateTrainAsync(id, trainDto);
 
             return NoContent();
         }
@@ -90,10 +80,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrain(int id)
         {
-            var isDeleted = await _trainService.DeleteTrainAsync(id);
-
-            if (!isDeleted)
-                return NotFound();
+            await _trainService.DeleteTrainAsync(id);
 
             return NoContent();
         }

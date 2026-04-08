@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
+using RailwayManagementSystemAPI.Exceptions;
 
 namespace RailwayManagementSystemAPI.Services
 {
@@ -28,9 +28,9 @@ namespace RailwayManagementSystemAPI.Services
                 })
                 .ToListAsync();
         }
-        public async Task<StationResponseDto?> GetStationByIdAsync(int id)
+        public async Task<StationResponseDto> GetStationByIdAsync(int id)
         {
-            return await _context.Stations
+            var station = await _context.Stations
                 .Where(s => s.Id == id)
                 .Select(s => new StationResponseDto
                 {
@@ -41,6 +41,11 @@ namespace RailwayManagementSystemAPI.Services
                     NumberOfPlatforms = s.NumberOfPlatforms
                 })
                 .FirstOrDefaultAsync();
+
+            if (station == null)
+                throw new NotFoundException($"Station with id {id} not found");
+
+            return station;
         }
         public async Task<StationResponseDto> CreateStationAsync(StationDto dto)
         {
@@ -64,7 +69,7 @@ namespace RailwayManagementSystemAPI.Services
                 NumberOfPlatforms = station.NumberOfPlatforms
             };
         }
-        public async Task<bool> UpdateStationAsync(int id, StationDto dto)
+        public async Task UpdateStationAsync(int id, StationDto dto)
         {
             var rowsAffected = await _context.Stations
                 .Where(s => s.Id == id)
@@ -75,15 +80,17 @@ namespace RailwayManagementSystemAPI.Services
                     .SetProperty(s => s.NumberOfPlatforms, dto.NumberOfPlatforms)
                 );
 
-            return rowsAffected > 0;
+            if (rowsAffected == 0)
+                throw new NotFoundException($"Station with id {id} not found");
         }
-        public async Task<bool> DeleteStationAsync(int id)
+        public async Task DeleteStationAsync(int id)
         {
             var rowsAffected = await _context.Stations
                 .Where(s => s.Id == id)
                 .ExecuteDeleteAsync();
 
-            return rowsAffected > 0;
+            if (rowsAffected == 0)
+                throw new NotFoundException($"Station with id {id} not found");
         }
     }
 }

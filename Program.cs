@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
+using RailwayManagementSystemAPI.Middleware;
 using RailwayManagementSystemAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

@@ -37,9 +37,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTrainTypes()
         {
-            var types = await _trainTypeService.GetAllTrainTypesAsync();
+            var trainTypes = await _trainTypeService.GetAllTrainTypesAsync();
 
-            return Ok(types);
+            return Ok(trainTypes);
         }
 
         /// <summary>
@@ -50,12 +50,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainTypeById(int id)
         {
-            var type = await _trainTypeService.GetTrainTypeByIdAsync(id);
+            var trainType = await _trainTypeService.GetTrainTypeByIdAsync(id);
 
-            if (type == null)
-                return NotFound();
-
-            return Ok(type);
+            return Ok(trainType);
         }
     }
 }

@@ -25,6 +25,7 @@ namespace RailwayManagementSystemAPI.Controllers
         public async Task<IActionResult> GetAllStations()
         {
             var stations = await _stationService.GetAllStationsAsync();
+
             return Ok(stations);
         }
 
@@ -37,9 +38,6 @@ namespace RailwayManagementSystemAPI.Controllers
         public async Task<IActionResult> GetStationById(int id)
         {
             var station = await _stationService.GetStationByIdAsync(id);
-
-            if (station == null)
-                return NotFound();
 
             return Ok(station);
         }
@@ -66,10 +64,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStation(int id, [FromBody] StationDto stationDto)
         {
-            var isUpdated = await _stationService.UpdateStationAsync(id, stationDto);
-
-            if (!isUpdated)
-                return NotFound();
+            await _stationService.UpdateStationAsync(id, stationDto);
 
             return NoContent();
         }
@@ -83,10 +78,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStation(int id)
         {
-            var isDeleted = await _stationService.DeleteStationAsync(id);
-
-            if (!isDeleted)
-                return NotFound();
+            await _stationService.DeleteStationAsync(id);
 
             return NoContent();
         }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
+using RailwayManagementSystemAPI.Exceptions;
 using RailwayManagementSystemAPI.Models;
 
 namespace RailwayManagementSystemAPI.Services
@@ -54,9 +55,9 @@ namespace RailwayManagementSystemAPI.Services
                 .ToListAsync();
         }
 
-        public async Task<TrainTypeResponseDto?> GetTrainTypeByIdAsync(int id)
+        public async Task<TrainTypeResponseDto> GetTrainTypeByIdAsync(int id)
         {
-            return await _context.TrainTypes
+            var trainType = await _context.TrainTypes
                 .Where(tt => tt.Id == id)
                 .Select(tt => new TrainTypeResponseDto
                 {
@@ -68,6 +69,11 @@ namespace RailwayManagementSystemAPI.Services
                     TypeOfTrain = tt.Type
                 })
                 .FirstOrDefaultAsync();
+
+            if (trainType == null)
+                throw new NotFoundException($"TrainType with id {id} not found");
+
+            return trainType;
         }
     }
 }
