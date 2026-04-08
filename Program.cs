@@ -9,6 +9,8 @@ builder.Services.AddDbContext<RailwayContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IStationService, StationService>();
+builder.Services.AddScoped<ITrainTypeService, TrainTypeService>();
+builder.Services.AddScoped<ITrainService, TrainService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
+using RailwayManagementSystemAPI.Services;
 
 namespace RailwayManagementSystemAPI.Controllers
 {
@@ -10,11 +10,11 @@ namespace RailwayManagementSystemAPI.Controllers
     [Route("api/train-types")]
     public class TrainTypeController : ControllerBase
     {
-        private readonly RailwayContext _context;
+        private readonly ITrainTypeService _trainTypeService;
 
-        public TrainTypeController(RailwayContext context)
+        public TrainTypeController(ITrainTypeService trainTypeService)
         {
-            _context = context;
+            _trainTypeService = trainTypeService;
         }
 
         /// <summary>
@@ -25,16 +25,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTrainType([FromBody] CreateTrainTypeDto dto)
         {
-            var trainType = new TrainType
-            {
-                Name = dto.Name,
-                MaxSpeed = dto.MaxSpeed,
-                Capacity = dto.Capacity,
-                Manufacturer = dto.Manufacturer
-            };
-
-            await _context.TrainTypes.AddAsync(trainType);
-            await _context.SaveChangesAsync();
+            var trainType = await _trainTypeService.CreateTrainTypeAsync(dto);
 
             return CreatedAtAction(nameof(GetTrainTypeById), new { id = trainType.Id }, trainType);
         }
@@ -46,17 +37,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTrainTypes()
         {
-            var types = await _context.TrainTypes
-                .Select(tt => new TrainTypeResponseDto
-                {
-                    Id = tt.Id,
-                    Name = tt.Name,
-                    MaxSpeed = tt.MaxSpeed,
-                    Capacity = tt.Capacity,
-                    Manufacturer = tt.Manufacturer,
-                    TypeOfTrain = tt.Type
-                })
-                .ToListAsync();
+            var types = await _trainTypeService.GetAllTrainTypesAsync();
 
             return Ok(types);
         }
@@ -69,18 +50,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainTypeById(int id)
         {
-            var type = await _context.TrainTypes
-                .Where(tt => tt.Id == id)
-                .Select(tt => new TrainTypeResponseDto
-                {
-                    Id = tt.Id,
-                    Name = tt.Name,
-                    MaxSpeed = tt.MaxSpeed,
-                    Capacity = tt.Capacity,
-                    Manufacturer = tt.Manufacturer,
-                    TypeOfTrain = tt.Type
-                })
-                .FirstOrDefaultAsync();
+            var type = await _trainTypeService.GetTrainTypeByIdAsync(id);
 
             if (type == null)
                 return NotFound();

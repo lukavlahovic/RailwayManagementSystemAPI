@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
+using RailwayManagementSystemAPI.Services;
 
 namespace RailwayManagementSystemAPI.Controllers
 {
@@ -10,11 +11,11 @@ namespace RailwayManagementSystemAPI.Controllers
     [Route("api/trains")]
     public class TrainController : ControllerBase
     {
-        private readonly RailwayContext _context;
+        private readonly ITrainService _trainService;
 
-        public TrainController(RailwayContext context)
+        public TrainController(ITrainService trainService)
         {
-            _context = context;
+            _trainService = trainService;
         }
 
         /// <summary>
@@ -24,22 +25,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTrains()
         {
-            var trains = await _context.Trains
-                .Select(t => new TrainResponseDto
-                {
-                    Id = t.Id,
-                    SerialNumber = t.SerialNumber,
-                    TrainType = new TrainTypeResponseDto
-                    {
-                        Id = t.TrainType.Id,
-                        Name = t.TrainType.Name,
-                        MaxSpeed = t.TrainType.MaxSpeed,
-                        Capacity = t.TrainType.Capacity,
-                        Manufacturer = t.TrainType.Manufacturer,
-                        TypeOfTrain = t.TrainType.Type
-                    }
-                })
-                .ToListAsync();
+            var trains = await _trainService.GetAllTrainsAsync();
 
             return Ok(trains);
         }
@@ -52,23 +38,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrainById(int id)
         {
-            var train = await _context.Trains
-                .Where(t => t.Id == id)
-                .Select(t => new TrainResponseDto
-                {
-                    Id = t.Id,
-                    SerialNumber = t.SerialNumber,
-                    TrainType = new TrainTypeResponseDto
-                    {
-                        Id = t.TrainType.Id,
-                        Name = t.TrainType.Name,
-                        MaxSpeed = t.TrainType.MaxSpeed,
-                        Capacity = t.TrainType.Capacity,
-                        Manufacturer = t.TrainType.Manufacturer,
-                        TypeOfTrain = t.TrainType.Type
-                    }
-                })
-                .FirstOrDefaultAsync();
+            var train = await _trainService.GetTrainByIdAsync(id);
 
             if (train == null)
                 return NotFound();
@@ -84,22 +54,11 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTrain([FromBody] CreateTrainDto trainDto)
         {
-            var exist = await _context.TrainTypes
-                .AnyAsync(tt => tt.Id == trainDto.TrainTypeId);
+            var (train,error) = await _trainService.CreateTrainAsync(trainDto);
+            if (error != null)
+                return BadRequest(error);
 
-            if (!exist)
-                return BadRequest($"TrainTypeId {trainDto.TrainTypeId} does not exist!");
-
-            var train = new Train
-            {
-                SerialNumber = trainDto.SerialNumber,
-                TrainTypeId = trainDto.TrainTypeId
-            };
-
-            await _context.Trains.AddAsync(train);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetTrainById), new { id = train.Id }, train);
+            return CreatedAtAction(nameof(GetTrainById), new { id = train!.Id }, train);
         }
 
         /// <summary>
@@ -112,21 +71,12 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTrain(int id, [FromBody] CreateTrainDto trainDto)
         {
-            var exist = await _context.TrainTypes
-                .AnyAsync(tt => tt.Id == trainDto.TrainTypeId);
+            var error = await _trainService.UpdateTrainAsync(id, trainDto);
 
-            if (!exist)
-                return BadRequest($"TrainTypeId {trainDto.TrainTypeId} does not exist!");
-
-            var rowsAffected = await _context.Trains
-                .Where(t => t.Id == id)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(t => t.TrainTypeId, trainDto.TrainTypeId)
-                    .SetProperty(t => t.SerialNumber, trainDto.SerialNumber)
-                );
-
-            if (rowsAffected == 0)
+            if (error == "NotFound")
                 return NotFound();
+            if (error != null)
+                return BadRequest(error);
 
             return NoContent();
         }
@@ -140,11 +90,9 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrain(int id)
         {
-            var rowsAffected = await _context.Trains
-                .Where(t => t.Id == id)
-                .ExecuteDeleteAsync();
+            var isDeleted = await _trainService.DeleteTrainAsync(id);
 
-            if (rowsAffected == 0)
+            if (!isDeleted)
                 return NotFound();
 
             return NoContent();
