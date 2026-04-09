@@ -5,10 +5,8 @@ namespace RailwayManagementSystemAPI.Dtos
 {
     public class CreateRouteDto
     {
-        [Required]
         public string Name { get; set; } = string.Empty;
 
-        [Required]
         public List<RouteStationDto> Stations { get; set; } = [];
     }
 }
