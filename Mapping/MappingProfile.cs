@@ -13,8 +13,7 @@ namespace RailwayManagementSystemAPI.Mapping
             CreateMap<Station, StationResponseDto>();
 
             // TypeTrain
-            CreateMap<CreateTrainTypeDto, TrainType>()
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
+            CreateMap<CreateTrainTypeDto, TrainType>();
             CreateMap<TrainType, TrainTypeResponseDto>()
                 .ForMember(dest => dest.TypeOfTrain, opt => opt.MapFrom(src => src.Type));
 

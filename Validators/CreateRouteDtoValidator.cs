@@ -18,8 +18,12 @@ namespace RailwayManagementSystemAPI.Validators
 
             // order is unique for every station on route
             RuleFor(x => x.Stations)
-                .Must(stations => stations.GroupBy(s => s.Order).All(g => g.Count() == 0))
+                .Must(stations => stations.GroupBy(s => s.Order).All(g => g.Count() == 1))
                 .WithMessage("Duplicate order values are not allowed");
+
+            RuleFor(x => x.Stations)
+                .Must(stations => stations.GroupBy(s => s.StationId).All(g => g.Count() == 1))
+                .WithMessage("Duplicate stations are not allowed");
 
             // check if first stations has ArrivalOffsetMinutes 0
             RuleFor(x => x.Stations)
