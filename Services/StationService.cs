@@ -1,73 +1,45 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
-using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Exceptions;
+using RailwayManagementSystemAPI.Models;
 
 namespace RailwayManagementSystemAPI.Services
 {
     public class StationService : IStationService
     {
         private readonly RailwayContext _context;
+        private readonly IMapper _mapper;
 
-        public StationService(RailwayContext context)
+        public StationService(RailwayContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<List<StationResponseDto>> GetAllStationsAsync()
         {
-            return await _context.Stations
-                .Select(s => new StationResponseDto
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    City = s.City,
-                    Country = s.Country,
-                    NumberOfPlatforms = s.NumberOfPlatforms
-                })
-                .ToListAsync();
+            var stations = await _context.Stations.ToListAsync();
+            return _mapper.Map<List<StationResponseDto>>(stations);
         }
         public async Task<StationResponseDto> GetStationByIdAsync(int id)
         {
-            var station = await _context.Stations
-                .Where(s => s.Id == id)
-                .Select(s => new StationResponseDto
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    City = s.City,
-                    Country = s.Country,
-                    NumberOfPlatforms = s.NumberOfPlatforms
-                })
-                .FirstOrDefaultAsync();
+            var station = await _context.Stations.FindAsync(id);
 
             if (station == null)
                 throw new NotFoundException($"Station with id {id} not found");
 
-            return station;
+            return _mapper.Map<StationResponseDto>(station);
         }
         public async Task<StationResponseDto> CreateStationAsync(StationDto dto)
         {
-            var station = new Station
-            {
-                Name = dto.Name,
-                City = dto.City,
-                Country = dto.Country,
-                NumberOfPlatforms = dto.NumberOfPlatforms
-            };
+            var station = _mapper.Map<Station>(dto);
 
             await _context.AddAsync(station);
             await _context.SaveChangesAsync();
 
-            return new StationResponseDto
-            {
-                Id = station.Id,
-                Name = station.Name,
-                City = station.City,
-                Country = station.Country,
-                NumberOfPlatforms = station.NumberOfPlatforms
-            };
+            return _mapper.Map<StationResponseDto>(station);
         }
         public async Task UpdateStationAsync(int id, StationDto dto)
         {

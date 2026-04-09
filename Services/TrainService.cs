@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Exceptions;
@@ -9,10 +11,12 @@ namespace RailwayManagementSystemAPI.Services
     public class TrainService : ITrainService
     {
         private readonly RailwayContext _context;
+        private readonly IMapper _mapper;
 
-        public TrainService(RailwayContext context)
+        public TrainService(RailwayContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<TrainResponseDto> CreateTrainAsync(CreateTrainDto dto)
@@ -23,11 +27,7 @@ namespace RailwayManagementSystemAPI.Services
             if (!trainTypeExists)
                 throw new BadRequestException($"TrainTypeId {dto.TrainTypeId} does not exist!");
 
-            var train = new Train
-            {
-                SerialNumber = dto.SerialNumber,
-                TrainTypeId = dto.TrainTypeId
-            };
+            var train = _mapper.Map<Train>(dto);
 
             await _context.Trains.AddAsync(train);
             await _context.SaveChangesAsync();
@@ -42,48 +42,21 @@ namespace RailwayManagementSystemAPI.Services
                 .ExecuteDeleteAsync();
 
             if (rowsAffected == 0)
-                throw new NotFoundException("NotFound");
+                throw new NotFoundException($"Train with id {id} not found");
         }
 
         public async Task<List<TrainResponseDto>> GetAllTrainsAsync()
         {
             return await _context.Trains
-                .Select(t => new TrainResponseDto
-                {
-                    Id = t.Id,
-                    SerialNumber = t.SerialNumber,
-                    TrainType = new TrainTypeResponseDto
-                    {
-                        Id = t.TrainType.Id,
-                        Name = t.TrainType.Name,
-                        MaxSpeed = t.TrainType.MaxSpeed,
-                        Capacity = t.TrainType.Capacity,
-                        Manufacturer = t.TrainType.Manufacturer,
-                        TypeOfTrain = t.TrainType.Type
-                    }
-                })
+                .ProjectTo<TrainResponseDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
 
         public async Task<TrainResponseDto> GetTrainByIdAsync(int id)
         {
             var train = await _context.Trains
-                .Where(t => t.Id == id)
-                .Select(t => new TrainResponseDto
-                {
-                    Id = t.Id,
-                    SerialNumber = t.SerialNumber,
-                    TrainType = new TrainTypeResponseDto
-                    {
-                        Id = t.TrainType.Id,
-                        Name = t.TrainType.Name,
-                        MaxSpeed = t.TrainType.MaxSpeed,
-                        Capacity = t.TrainType.Capacity,
-                        Manufacturer = t.TrainType.Manufacturer,
-                        TypeOfTrain = t.TrainType.Type
-                    }
-                })
-                .FirstOrDefaultAsync();
+                .ProjectTo<TrainResponseDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (train == null)
                 throw new NotFoundException($"Train with id {id} not found");
@@ -107,7 +80,7 @@ namespace RailwayManagementSystemAPI.Services
                 );
 
             if (rowsAffected == 0)
-                throw new NotFoundException("NotFound");
+                throw new NotFoundException($"Train with id {id} not found");
         }
     }
 }

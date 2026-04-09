@@ -15,6 +15,8 @@ builder.Services.AddDbContext<RailwayContext>(options =>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddScoped<IStationService, StationService>();
 builder.Services.AddScoped<ITrainTypeService, TrainTypeService>();
 builder.Services.AddScoped<ITrainService, TrainService>();
