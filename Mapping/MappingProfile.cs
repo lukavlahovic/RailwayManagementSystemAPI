@@ -33,6 +33,22 @@ namespace RailwayManagementSystemAPI.Mapping
             CreateMap<Models.Route, RouteResponseDto>()
                 .ForMember(dest => dest.Stations, opt => opt.MapFrom(src =>
                     src.RouteStations.OrderBy(rs => rs.Order)));
+
+            // Trip
+            CreateMap<CreateTripDto, Trip>();
+            CreateMap<Trip, TripResponseDto>()
+                .ForMember(dest => dest.SerialNumber, opt => opt.MapFrom(src => src.Train.SerialNumber))
+                .ForMember(dest => dest.TrainTypeName, opt => opt.MapFrom(src => src.Train.TrainType.Name))
+                .ForMember(dest => dest.RouteName, opt => opt.MapFrom(src => src.Route.Name));
+            CreateMap<Trip, TripScheduleDto>()
+                .ForMember(dest => dest.TripId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Train, opt => opt.MapFrom(src => src.Train.SerialNumber))
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route.Name));
+
+            // Delay
+            CreateMap<CreateDelayDto, Delay>();
+            CreateMap<Delay, DelayResponseDto>()
+                .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.Station.Name));
         }
     }
 }

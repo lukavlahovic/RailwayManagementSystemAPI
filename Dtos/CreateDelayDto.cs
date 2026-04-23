@@ -5,14 +5,10 @@ namespace RailwayManagementSystemAPI.Dtos
 {
     public class CreateDelayDto
     {
-        [Required]
         public int TripId { get; set; }
 
-        [Required]
         public int StationId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than {1}")]
         public int DelayMinutes { get; set; }
 
         public TypeOfDelay TypeOfDelay { get; set; }

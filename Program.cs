@@ -21,6 +21,8 @@ builder.Services.AddScoped<IStationService, StationService>();
 builder.Services.AddScoped<ITrainTypeService, TrainTypeService>();
 builder.Services.AddScoped<ITrainService, TrainService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
+builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IDelayService, DelayService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
