@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RailwayManagementSystemAPI.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Services;
@@ -49,6 +48,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="trainDto">The data for the train to create.</param>
         /// <returns>A 201 Created response with the created train, or 400 Bad Request if the train type does not exist.</returns>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTrain([FromBody] CreateTrainDto trainDto)
         {
             var train = await _trainService.CreateTrainAsync(trainDto);
@@ -64,6 +64,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <returns>A 204 No Content response if the update is successful; 400 Bad Request if the specified TrainTypeId does not
         /// exist; 404 Not Found if the train is not found.</returns>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateTrain(int id, [FromBody] CreateTrainDto trainDto)
         {
             await _trainService.UpdateTrainAsync(id, trainDto);
@@ -78,6 +79,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <returns>A 204 No Content response if the train was deleted; otherwise, a 404 Not Found response if the train does
         /// not exist.</returns>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTrain(int id)
         {
             await _trainService.DeleteTrainAsync(id);

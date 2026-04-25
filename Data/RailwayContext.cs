@@ -14,6 +14,7 @@ namespace RailwayManagementSystemAPI.Data
         public DbSet<Models.RouteStation> RouteStations { get; set; }
         public DbSet<Models.Trip> Trip { get; set; }
         public DbSet<Models.Delay> Delays { get; set; }
+        public DbSet<Models.User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -60,6 +61,14 @@ namespace RailwayManagementSystemAPI.Data
 
             modelBuilder.Entity<Delay>()
                 .HasIndex(d => new { d.TripId, d.StationId });
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
         }
     }
 }

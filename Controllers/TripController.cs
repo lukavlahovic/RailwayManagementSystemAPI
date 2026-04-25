@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RailwayManagementSystemAPI.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Services;
@@ -19,6 +18,7 @@ namespace RailwayManagementSystemAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Operator")]
         public async Task<IActionResult> CreateTrip([FromBody] CreateTripDto dto)
         {
             var response = await _tripService.CreateTrip(dto);

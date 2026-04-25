@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Services;
@@ -23,6 +23,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="dto">The data transfer object containing information for the new train type.</param>
         /// <returns>A response with the created train type and a location header.</returns>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTrainType([FromBody] CreateTrainTypeDto dto)
         {
             var trainType = await _trainTypeService.CreateTrainTypeAsync(dto);

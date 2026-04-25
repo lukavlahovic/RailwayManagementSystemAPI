@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RailwayManagementSystemAPI.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Services;
@@ -24,9 +23,10 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="dto">The data transfer object containing route details and associated stations.</param>
         /// <returns>A 201 Created response with the created route, or 400 Bad Request if any stations are not found.</returns>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateRoute([FromBody] CreateRouteDto dto)
         {
-            var route = _routeService.CreateRoute(dto);
+            var route = await _routeService.CreateRoute(dto);
 
             return CreatedAtAction(nameof(GetRouteById), new { id = route.Id }, route);
         }
@@ -63,6 +63,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="dto">The data transfer object containing updated route information.</param>
         /// <returns>An IActionResult indicating the result of the operation.</returns>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateRoute(int id, [FromBody] CreateRouteDto dto)
         {
             await _routeService.UpdateRouteAsync(id, dto);
@@ -76,6 +77,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="id">The identifier of the route to delete.</param>
         /// <returns>A 204 No Content response if the route was deleted; otherwise, a 404 Not Found response.</returns>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteRoute(int id)
         {
             await _routeService.DeleteRouteAsync(id);

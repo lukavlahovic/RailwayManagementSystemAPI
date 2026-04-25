@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Models;
 using RailwayManagementSystemAPI.Services;
@@ -48,6 +48,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="stationDto">The data for the station to create.</param>
         /// <returns>A 201 Created response with the created station.</returns>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateStation([FromBody] StationDto stationDto)
         {
             var station = await _stationService.CreateStationAsync(stationDto);
@@ -62,6 +63,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <param name="stationDto">The updated station data.</param>
         /// <returns>An HTTP 204 response if the update is successful; HTTP 404 if the station is not found.</returns>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStation(int id, [FromBody] StationDto stationDto)
         {
             await _stationService.UpdateStationAsync(id, stationDto);
@@ -76,6 +78,7 @@ namespace RailwayManagementSystemAPI.Controllers
         /// <returns>A 204 No Content response if the station was deleted; otherwise, a 404 Not Found response if the station
         /// does not exist.</returns>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteStation(int id)
         {
             await _stationService.DeleteStationAsync(id);
