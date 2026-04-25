@@ -1,5 +1,6 @@
 ﻿namespace RailwayManagementSystemAPI.Configuration
 {
+    // mirror of JwtSettings  in appsetting for safer and cleaner use
     public class JwtSettings
     {
         public string Secret { get; set; } = string.Empty;

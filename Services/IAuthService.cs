@@ -7,5 +7,6 @@ namespace RailwayManagementSystemAPI.Services
     {
         Task<AuthResponseDto> Register(RegisterDto dto, UserRole role);
         Task<AuthResponseDto> Login(LoginDto dto);
+        Task<bool> AdminExists();
     }
 }

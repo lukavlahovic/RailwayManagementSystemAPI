@@ -19,6 +19,16 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpPost("register/admin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterDto dto)
         {
+            // check if any admin exists — if yes, require admin token
+            var adminExists = await _authService.AdminExists();
+
+            if (adminExists)
+            {
+                // only existing admins can register new admins
+                if (!User.Identity!.IsAuthenticated || !User.IsInRole("Admin"))
+                    return Unauthorized("An admin token is required to create additional admins");
+            }
+
             var response = await _authService.Register(dto, UserRole.Admin);
 
             return Ok(response);

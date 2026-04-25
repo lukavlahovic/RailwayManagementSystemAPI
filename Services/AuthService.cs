@@ -25,6 +25,14 @@ namespace RailwayManagementSystemAPI.Services
 
         public async Task<AuthResponseDto> Register(RegisterDto dto, UserRole role)
         {
+            // if trying to register as admin, check if any admins already exist
+            if (role == UserRole.Admin)
+            {
+                var adminExists = await _context.Users.AnyAsync(u => u.Role == UserRole.Admin);
+                if (adminExists)
+                    throw new BadRequestException("An admin already exists. Use an admin token to create additional admins.");
+            }
+
             var emailTaken = await _context.Users.AnyAsync(u => u.Email == dto.Email);
             if (emailTaken)
                 throw new BadRequestException("Email is already in use");
@@ -93,6 +101,11 @@ namespace RailwayManagementSystemAPI.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async Task<bool> AdminExists()
+        {
+            return await _context.Users.AnyAsync(u => u.Role == UserRole.Admin);
         }
     }
 }
