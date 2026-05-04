@@ -22,9 +22,9 @@ namespace RailwayManagementSystemAPI.Controllers
         /// </summary>
         /// <returns>An IActionResult containing a list of TrainResponseDto objects.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllTrains()
+        public async Task<IActionResult> GetAllTrains([FromQuery] PaginationQuery paginationQuery)
         {
-            var trains = await _trainService.GetAllTrainsAsync();
+            var trains = await _trainService.GetAllTrainsAsync(paginationQuery);
 
             return Ok(trains);
         }

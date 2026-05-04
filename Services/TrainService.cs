@@ -45,11 +45,28 @@ namespace RailwayManagementSystemAPI.Services
                 throw new NotFoundException($"Train with id {id} not found");
         }
 
-        public async Task<List<TrainResponseDto>> GetAllTrainsAsync()
+        public async Task<PagedResult<TrainResponseDto>> GetAllTrainsAsync(PaginationQuery paginationQuery)
         {
-            return await _context.Trains
+            paginationQuery.Page = paginationQuery.Page < 1 ? 1 : paginationQuery.Page;
+            paginationQuery.PageSize = paginationQuery.PageSize > 50 ? 50 : paginationQuery.PageSize;
+
+            var totalCount = await _context.Trains.CountAsync();
+
+            var trains = await _context.Trains
+                .Skip((paginationQuery.Page - 1) * paginationQuery.PageSize)
+                .Take(paginationQuery.PageSize)
                 .ProjectTo<TrainResponseDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            var response = new PagedResult<TrainResponseDto>
+            {
+                Items = trains,
+                TotalCount = totalCount,
+                Page = paginationQuery.Page,
+                PageSize = paginationQuery.PageSize
+            };
+
+            return response;
         }
 
         public async Task<TrainResponseDto> GetTrainByIdAsync(int id)

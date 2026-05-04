@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Exceptions;
 using RailwayManagementSystemAPI.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace RailwayManagementSystemAPI.Services
 {
@@ -18,11 +21,30 @@ namespace RailwayManagementSystemAPI.Services
             _mapper = mapper;
         }
 
-        public async Task<List<StationResponseDto>> GetAllStationsAsync()
+        public async Task<PagedResult<StationResponseDto>> GetAllStationsAsync(PaginationQuery paginationQuery)
         {
-            var stations = await _context.Stations.ToListAsync();
-            return _mapper.Map<List<StationResponseDto>>(stations);
+            paginationQuery.Page = paginationQuery.Page < 1 ? 1 : paginationQuery.Page;
+            paginationQuery.PageSize = paginationQuery.PageSize > 50 ? 50 : paginationQuery.PageSize;
+
+            var totalCount = await _context.Stations.CountAsync();
+
+            var stations = await _context.Stations
+                .Skip((paginationQuery.Page - 1) * paginationQuery.PageSize)
+                .Take(paginationQuery.PageSize)
+                .ProjectTo<StationResponseDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            var response = new PagedResult<StationResponseDto>
+            {
+                Items = stations,
+                TotalCount = totalCount,
+                Page = paginationQuery.Page,
+                PageSize = paginationQuery.PageSize
+            };
+
+            return response;
         }
+
         public async Task<StationResponseDto> GetStationByIdAsync(int id)
         {
             var station = await _context.Stations.FindAsync(id);

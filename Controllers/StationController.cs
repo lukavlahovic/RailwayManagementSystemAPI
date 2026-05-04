@@ -22,9 +22,9 @@ namespace RailwayManagementSystemAPI.Controllers
         /// </summary>
         /// <returns>An IActionResult containing the list of stations.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllStations()
+        public async Task<IActionResult> GetAllStations([FromQuery] PaginationQuery paginationQuery)
         {
-            var stations = await _stationService.GetAllStationsAsync();
+            var stations = await _stationService.GetAllStationsAsync(paginationQuery);
 
             return Ok(stations);
         }

@@ -49,9 +49,9 @@ namespace RailwayManagementSystemAPI.Controllers
         /// </summary>
         /// <returns>An IActionResult containing a collection of RouteResponseDto objects.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetRoutes()
+        public async Task<IActionResult> GetRoutes([FromQuery] PaginationQuery paginationQuery)
         {
-            var routes = await _routeService.GetRoutesAsync();
+            var routes = await _routeService.GetRoutesAsync(paginationQuery);
 
             return Ok(routes);
         }

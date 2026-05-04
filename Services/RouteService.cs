@@ -5,6 +5,7 @@ using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Dtos;
 using RailwayManagementSystemAPI.Exceptions;
 using RailwayManagementSystemAPI.Models;
+using System.Linq;
 
 namespace RailwayManagementSystemAPI.Services
 {
@@ -63,11 +64,28 @@ namespace RailwayManagementSystemAPI.Services
             return route;
         }
 
-        public async Task<List<RouteResponseDto>> GetRoutesAsync()
+        public async Task<PagedResult<RouteResponseDto>> GetRoutesAsync(PaginationQuery paginationQuery)
         {
-            return await _context.Routes
+            paginationQuery.Page = paginationQuery.Page < 1 ? 1 : paginationQuery.Page;
+            paginationQuery.PageSize = paginationQuery.PageSize > 50 ? 50 : paginationQuery.PageSize;
+
+            var totalCount = await _context.Routes.CountAsync();
+
+            var routes = await _context.Routes
+                .Skip((paginationQuery.Page - 1) * paginationQuery.PageSize)
+                .Take(paginationQuery.PageSize)
                 .ProjectTo<RouteResponseDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            var response = new PagedResult<RouteResponseDto>
+            {
+                Items = routes,
+                TotalCount = totalCount,
+                Page = paginationQuery.Page,
+                PageSize = paginationQuery.PageSize
+            };
+
+            return response;
         }
 
         public async Task UpdateRouteAsync(int id, CreateRouteDto dto)
