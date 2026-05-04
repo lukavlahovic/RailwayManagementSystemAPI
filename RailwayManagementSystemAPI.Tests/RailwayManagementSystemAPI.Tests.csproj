@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RailwayManagementSystemAPI\RailwayManagementSystemAPI.csproj" />
+    <ProjectReference Include="..\RailwayManagementSystemAPI.csproj" />
   </ItemGroup>
 
 </Project>

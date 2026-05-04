@@ -25,4 +25,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+	<Compile Remove="RailwayManagementSystemAPI.Tests\**" />
+	<Content Remove="RailwayManagementSystemAPI.Tests\**" />
+	<EmbeddedResource Remove="RailwayManagementSystemAPI.Tests\**" />
+	<None Remove="RailwayManagementSystemAPI.Tests\**" />
+  </ItemGroup>
+
 </Project>
