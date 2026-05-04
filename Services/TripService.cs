@@ -12,32 +12,45 @@ namespace RailwayManagementSystemAPI.Services
     {
         private readonly RailwayContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<TripService> _logger;
 
-        public TripService(RailwayContext context, IMapper mapper)
+        public TripService(RailwayContext context, IMapper mapper, ILogger<TripService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<TripResponseDto> CreateTripAsync(CreateTripDto dto)
         {
             if (dto.DepartureTime >= dto.ArrivalTime)
+            {
+                _logger.LogWarning("Departure time of trip is incorrect {DepartureTime}", dto.DepartureTime);
                 throw new BadRequestException("Arrival time must be after departure time!");
+            }
 
             var trainExists = await _context.Trains.AnyAsync(t => t.Id == dto.TrainId);
 
             if (!trainExists)
+            {
+                _logger.LogWarning("Train with id {TrainId} does not exist", dto.TrainId);
                 throw new BadRequestException("Invalid TrainId");
+            }
 
             var routeExists = await _context.Routes.AnyAsync(r => r.Id == dto.RouteId);
 
             if (!routeExists)
+            {
+                _logger.LogWarning("Route with id {RouteId} does not exist", dto.RouteId);
                 throw new BadRequestException("Invalid RouteId");
+            }
 
             var trip = _mapper.Map<Trip>(dto);
 
             await _context.Trip.AddAsync(trip);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Trip with id {TripId} was created", trip.Id);
 
             return await GetTripByIdAsync(trip.Id);
         }
@@ -46,7 +59,10 @@ namespace RailwayManagementSystemAPI.Services
         {
             var stationExists = await _context.Stations.AnyAsync(s => s.Id == stationId);
             if (!stationExists)
+            {
+                _logger.LogWarning("Station with id {StationId} not found", stationId);
                 throw new NotFoundException($"Station with id {stationId} not found");
+            }
 
             var now = DateTime.Now;
 
@@ -128,7 +144,10 @@ namespace RailwayManagementSystemAPI.Services
                 .FirstOrDefaultAsync();
 
             if (trip == null)
+            {
+                _logger.LogWarning("Trip with id {TripId} not found", id);
                 throw new NotFoundException($"Trip with id {id} not found");
+            }
 
             return trip;
         }
@@ -146,9 +165,12 @@ namespace RailwayManagementSystemAPI.Services
 
         public async Task<List<TripScheduleDto>> GetTripsByStationAsync(int stationId)
         {
-            var stationExists = await _context.Stations.FindAsync(stationId);
-            if (stationExists == null)
+            var stationExists = await _context.Stations.AnyAsync(s => s.Id == stationId);
+            if (!stationExists)
+            {
+                _logger.LogWarning("Station with id {StationId} not found", stationId);
                 throw new NotFoundException($"Station with id {stationId} not found");
+            }
 
             var trips = await _context.Trip
                 .Where(t => t.Route.RouteStations
@@ -173,7 +195,10 @@ namespace RailwayManagementSystemAPI.Services
                 .AsQueryable();
 
             if (!query.FromStationId.HasValue && !query.ToStationId.HasValue)
+            {
+                _logger.LogWarning("Neither FromStationId or ToStationId was provided");
                 throw new BadRequestException("At least one of FromStationId or ToStationId must be provided.");
+            }
 
             if (query.FromStationId.HasValue)
             {
@@ -184,7 +209,10 @@ namespace RailwayManagementSystemAPI.Services
                             .Any(rs => rs.StationId == query.FromStationId));
                 }
                 else
+                {
+                    _logger.LogWarning("Invalid FromStationId {FromStationId} provided", query.FromStationId);
                     throw new BadRequestException("Invalid FromStationId");
+                }
             }
 
             if (query.ToStationId.HasValue)
@@ -196,11 +224,17 @@ namespace RailwayManagementSystemAPI.Services
                             .Any(rs => rs.StationId == query.ToStationId));
                 }
                 else
+                {
+                    _logger.LogWarning("Invalid ToStationId {ToStationId} provided", query.ToStationId);
                     throw new BadRequestException("Invalid ToStationId");
+                }
             }
 
             if (query.Date.HasValue && query.Date.Value.Date < DateTime.Today)
+            {
+                _logger.LogWarning("Date {Date} cannot be in the past", query.Date.Value.Date);
                 throw new BadRequestException("Date cannot be in the past.");
+            }
 
             if (query.Date.HasValue)
             {
@@ -211,19 +245,22 @@ namespace RailwayManagementSystemAPI.Services
             if (query.MinDepartureTime.HasValue && query.MaxDepartureTime.HasValue)
             {
                 if (query.MinDepartureTime > query.MaxDepartureTime)
+                {
+                    _logger.LogWarning("MinDepartureTime cannot be greater than MaxDepartureTime");
                     throw new BadRequestException("MinDepartureTime cannot be greater than MaxDepartureTime.");
+                }
             }
 
             if (query.MinDepartureTime.HasValue)
             {
                 tripsQuery = tripsQuery
-                    .Where(t => t.DepartureTime.TimeOfDay == query.MinDepartureTime);
+                    .Where(t => t.DepartureTime.TimeOfDay >= query.MinDepartureTime);
             }
 
             if (query.MaxDepartureTime.HasValue)
             {
                 tripsQuery = tripsQuery
-                    .Where(t => t.DepartureTime.TimeOfDay == query.MaxDepartureTime);
+                    .Where(t => t.DepartureTime.TimeOfDay <= query.MaxDepartureTime);
             }
 
             var totalCount = await tripsQuery.CountAsync();

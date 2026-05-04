@@ -14,11 +14,13 @@ namespace RailwayManagementSystemAPI.Services
     {
         private readonly RailwayContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<StationService> _logger;
 
-        public StationService(RailwayContext context, IMapper mapper)
+        public StationService(RailwayContext context, IMapper mapper, ILogger<StationService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<PagedResult<StationResponseDto>> GetAllStationsAsync(PaginationQuery paginationQuery)
@@ -49,8 +51,11 @@ namespace RailwayManagementSystemAPI.Services
         {
             var station = await _context.Stations.FindAsync(id);
 
-            if (station == null)
+            if (station == null) 
+            {
+                _logger.LogWarning("Station with id {StationId} was not found", id);
                 throw new NotFoundException($"Station with id {id} not found");
+            }
 
             return _mapper.Map<StationResponseDto>(station);
         }
@@ -60,6 +65,8 @@ namespace RailwayManagementSystemAPI.Services
 
             await _context.AddAsync(station);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Station created with id {StationId}", station.Id);
 
             return _mapper.Map<StationResponseDto>(station);
         }
@@ -75,7 +82,12 @@ namespace RailwayManagementSystemAPI.Services
                 );
 
             if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Station with id {StationId} was not found for update", id);
                 throw new NotFoundException($"Station with id {id} not found");
+            }
+
+            _logger.LogInformation("Station with id {StationId} updated successfully", id);
         }
         public async Task DeleteStationAsync(int id)
         {
@@ -84,7 +96,12 @@ namespace RailwayManagementSystemAPI.Services
                 .ExecuteDeleteAsync();
 
             if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Station with id {StationId} was not found for deletion", id);
                 throw new NotFoundException($"Station with id {id} not found");
+            }
+
+            _logger.LogInformation("Station with id {StationId} deleted successfully", id);
         }
     }
 }

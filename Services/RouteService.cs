@@ -13,11 +13,13 @@ namespace RailwayManagementSystemAPI.Services
     {
         private readonly RailwayContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<RouteService> _logger;
 
-        public RouteService(RailwayContext context, IMapper mapper)
+        public RouteService(RailwayContext context, IMapper mapper, ILogger<RouteService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<RouteResponseDto> CreateRouteAsync(CreateRouteDto dto)
@@ -32,12 +34,17 @@ namespace RailwayManagementSystemAPI.Services
 
             var missing = stationIds.Except(existingStations);
             if (missing.Any())
+            {
+                _logger.LogWarning("Stations not found {Missing}", string.Join(",", missing));
                 throw new BadRequestException($"Stations not found: {string.Join(",", missing)}");
+            }
 
             var route = _mapper.Map<Models.Route>(dto);
 
             await _context.Routes.AddAsync(route);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created Route with id {RouteId}", route.Id);
 
             return await GetRouteByIdAsync(route.Id);
         }
@@ -49,7 +56,12 @@ namespace RailwayManagementSystemAPI.Services
                 .ExecuteDeleteAsync();
 
             if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Route with id {RouteId} was not found for deletion", id);
                 throw new NotFoundException($"Route with id {id} not found");
+            }
+
+            _logger.LogInformation("Route with id {RouteId} was deleted", id);
         }
 
         public async Task<RouteResponseDto> GetRouteByIdAsync(int id)
@@ -59,7 +71,10 @@ namespace RailwayManagementSystemAPI.Services
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (route == null)
+            {
+                _logger.LogWarning("Route with id {RouteId} was not found", id);
                 throw new NotFoundException($"Route with id {id} not found");
+            }
 
             return route;
         }
@@ -95,7 +110,10 @@ namespace RailwayManagementSystemAPI.Services
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (route == null)
+            {
+                _logger.LogWarning("Route with id {RouteId} was not found for update", id);
                 throw new NotFoundException($"Route with id {id} not found");
+            }
 
             var stationIds = dto.Stations.Select(s => s.StationId).ToList();
             var existingIds = await _context.Stations
@@ -105,7 +123,10 @@ namespace RailwayManagementSystemAPI.Services
 
             var missing = stationIds.Except(existingIds).ToList();
             if (missing.Any())
+            {
+                _logger.LogWarning("Stations not found {Missing}", string.Join(", ", missing));
                 throw new BadRequestException($"Stations not found: {string.Join(", ", missing)}");
+            }
 
             _context.RouteStations.RemoveRange(route.RouteStations);
 
@@ -113,6 +134,8 @@ namespace RailwayManagementSystemAPI.Services
             route.RouteStations = _mapper.Map<List<RouteStation>>(dto.Stations);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Route with id {RouteId} was updated", id);
         }
     }
 }

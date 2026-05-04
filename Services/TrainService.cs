@@ -12,11 +12,13 @@ namespace RailwayManagementSystemAPI.Services
     {
         private readonly RailwayContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger<TrainService> _logger;
 
-        public TrainService(RailwayContext context, IMapper mapper)
+        public TrainService(RailwayContext context, IMapper mapper, ILogger<TrainService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<TrainResponseDto> CreateTrainAsync(CreateTrainDto dto)
@@ -25,12 +27,17 @@ namespace RailwayManagementSystemAPI.Services
                 .AnyAsync(tt => tt.Id == dto.TrainTypeId);
 
             if (!trainTypeExists)
+            {
+                _logger.LogWarning("TrainType with id {TrainTypeId} does not exist!", dto.TrainTypeId);
                 throw new BadRequestException($"TrainTypeId {dto.TrainTypeId} does not exist!");
+            }
 
             var train = _mapper.Map<Train>(dto);
 
             await _context.Trains.AddAsync(train);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created train with id {TrainId}", train.Id);
 
             return await GetTrainByIdAsync(train.Id);
         }
@@ -42,7 +49,12 @@ namespace RailwayManagementSystemAPI.Services
                 .ExecuteDeleteAsync();
 
             if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Train with id {TrainId} was not found for deletion", id);
                 throw new NotFoundException($"Train with id {id} not found");
+            }
+
+            _logger.LogInformation("Train with id {TrainId} was deleted", id);
         }
 
         public async Task<PagedResult<TrainResponseDto>> GetAllTrainsAsync(PaginationQuery paginationQuery)
@@ -76,7 +88,10 @@ namespace RailwayManagementSystemAPI.Services
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (train == null)
+            {
+                _logger.LogWarning("Train with id {TrainId} was not found", id);
                 throw new NotFoundException($"Train with id {id} not found");
+            }
 
             return train;
         }
@@ -87,7 +102,10 @@ namespace RailwayManagementSystemAPI.Services
                 .AnyAsync(tt => tt.Id == dto.TrainTypeId);
 
             if (!trainTypeExists)
+            {
+                _logger.LogWarning("TrainType with id {TrainTypeId} does not exist", dto.TrainTypeId);
                 throw new BadRequestException($"TrainTypeId {dto.TrainTypeId} does not exist!");
+            }
 
             var rowsAffected = await _context.Trains
                 .Where(t => t.Id == id)
@@ -97,7 +115,12 @@ namespace RailwayManagementSystemAPI.Services
                 );
 
             if (rowsAffected == 0)
+            {
+                _logger.LogWarning("Train with id {TrainId} was not updated", id);
                 throw new NotFoundException($"Train with id {id} not found");
+            }
+
+            _logger.LogInformation("Train with id {TrainId} was updated", id);
         }
     }
 }
