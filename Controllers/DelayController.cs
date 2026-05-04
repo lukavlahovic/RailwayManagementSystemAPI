@@ -21,7 +21,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [Authorize(Roles = "Admin,Operator")]
         public async Task<IActionResult> CreateDelay(CreateDelayDto dto)
         {
-            var response = await _delayService.CreateDelay(dto);
+            var response = await _delayService.CreateDelayAsync(dto);
 
             return CreatedAtAction(nameof(GetDelayById), new { id = response.Id }, response);
         }
@@ -29,7 +29,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDelayById(int id)
         {
-            var delay = await _delayService.GetDelayById(id);
+            var delay = await _delayService.GetDelayByIdAsync(id);
 
             return Ok(delay);
         }
@@ -37,7 +37,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("trip/{tripId}")]
         public async Task<IActionResult> GetDelaysByTrip(int tripId)
         {
-            var delays = await _delayService.GetDelaysByTrip(tripId);
+            var delays = await _delayService.GetDelaysByTripAsync(tripId);
 
             return Ok(delays);
         }

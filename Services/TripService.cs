@@ -19,7 +19,7 @@ namespace RailwayManagementSystemAPI.Services
             _mapper = mapper;
         }
 
-        public async Task<TripResponseDto> CreateTrip(CreateTripDto dto)
+        public async Task<TripResponseDto> CreateTripAsync(CreateTripDto dto)
         {
             if (dto.DepartureTime >= dto.ArrivalTime)
                 throw new BadRequestException("Arrival time must be after departure time!");
@@ -39,10 +39,10 @@ namespace RailwayManagementSystemAPI.Services
             await _context.Trip.AddAsync(trip);
             await _context.SaveChangesAsync();
 
-            return await GetTripById(trip.Id);
+            return await GetTripByIdAsync(trip.Id);
         }
 
-        public async Task<List<StationScheduleDto>> GetStationSchedule(int stationId)
+        public async Task<List<StationScheduleDto>> GetStationScheduleAsync(int stationId)
         {
             var stationExists = await _context.Stations.AnyAsync(s => s.Id == stationId);
             if (!stationExists)
@@ -120,7 +120,7 @@ namespace RailwayManagementSystemAPI.Services
             return result;
         }
 
-        public async Task<TripResponseDto> GetTripById(int id)
+        public async Task<TripResponseDto> GetTripByIdAsync(int id)
         {
             var trip = await _context.Trip
                 .Where(t => t.Id == id)
@@ -133,7 +133,7 @@ namespace RailwayManagementSystemAPI.Services
             return trip;
         }
 
-        public async Task<List<TripScheduleDto>> GetTripsByDate(DateTime date)
+        public async Task<List<TripScheduleDto>> GetTripsByDateAsync(DateTime date)
         {
             var trips = await _context.Trip
                 .Where(t => t.DepartureTime.Date == date.Date)
@@ -144,7 +144,7 @@ namespace RailwayManagementSystemAPI.Services
             return trips;
         }
 
-        public async Task<List<TripScheduleDto>> GetTripsByStation(int stationId)
+        public async Task<List<TripScheduleDto>> GetTripsByStationAsync(int stationId)
         {
             var stationExists = await _context.Stations.FindAsync(stationId);
             if (stationExists == null)
@@ -160,7 +160,7 @@ namespace RailwayManagementSystemAPI.Services
             return trips;
         }
 
-        public async Task<PagedResult<TripSearchResponseDto>> SearchTrips(TripSearchQuery query)
+        public async Task<PagedResult<TripSearchResponseDto>> SearchTripsAsync(TripSearchQuery query)
         {
             var now = DateTime.Now;
 

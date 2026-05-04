@@ -21,7 +21,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [Authorize(Roles = "Admin,Operator")]
         public async Task<IActionResult> CreateTrip([FromBody] CreateTripDto dto)
         {
-            var response = await _tripService.CreateTrip(dto);
+            var response = await _tripService.CreateTripAsync(dto);
 
             return CreatedAtAction(nameof(GetTripById), new { id = response.Id}, response);
         }
@@ -29,7 +29,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTripById(int id)
         {
-            var trip = await _tripService.GetTripById(id);
+            var trip = await _tripService.GetTripByIdAsync(id);
 
             return Ok(trip);
         }
@@ -37,7 +37,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("station/{stationId}")]
         public async Task<IActionResult> GetTripsByStation(int stationId)
         {
-            var trips = await _tripService.GetTripsByStation(stationId);
+            var trips = await _tripService.GetTripsByStationAsync(stationId);
 
             return Ok(trips);
         }
@@ -45,7 +45,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("date")]
         public async Task<IActionResult> GetTripsByDate([FromQuery] DateTime date)
         {
-            var trips = await _tripService.GetTripsByDate(date);
+            var trips = await _tripService.GetTripsByDateAsync(date);
 
             return Ok(trips);
         }
@@ -53,7 +53,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("station/{stationId}/schedule")]
         public async Task<IActionResult> GetStationSchedule(int stationId)
         {
-            var result = await _tripService.GetStationSchedule(stationId);
+            var result = await _tripService.GetStationScheduleAsync(stationId);
 
             return Ok(result);
         }
@@ -61,7 +61,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchTrips([FromQuery] TripSearchQuery query)
         {
-            var response = await _tripService.SearchTrips(query);
+            var response = await _tripService.SearchTripsAsync(query);
 
             return Ok(response);
         }

@@ -26,7 +26,7 @@ namespace RailwayManagementSystemAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateRoute([FromBody] CreateRouteDto dto)
         {
-            var route = await _routeService.CreateRoute(dto);
+            var route = await _routeService.CreateRouteAsync(dto);
 
             return CreatedAtAction(nameof(GetRouteById), new { id = route.Id }, route);
         }

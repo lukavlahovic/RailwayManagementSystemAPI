@@ -19,7 +19,7 @@ namespace RailwayManagementSystemAPI.Services
             _mapper = mapper;
         }
 
-        public async Task<RouteResponseDto> CreateRoute(CreateRouteDto dto)
+        public async Task<RouteResponseDto> CreateRouteAsync(CreateRouteDto dto)
         {
             var stationIds = dto.Stations.Select(s => s.StationId).ToList();
 

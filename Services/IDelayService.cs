@@ -5,10 +5,10 @@ namespace RailwayManagementSystemAPI.Services
 {
     public interface IDelayService
     {
-        Task<DelayResponseDto> CreateDelay(CreateDelayDto dto);
+        Task<DelayResponseDto> CreateDelayAsync(CreateDelayDto dto);
 
-        Task<DelayResponseDto> GetDelayById(int id);
+        Task<DelayResponseDto> GetDelayByIdAsync(int id);
 
-        Task<List<DelayResponseDto>> GetDelaysByTrip(int tripId);
+        Task<List<DelayResponseDto>> GetDelaysByTripAsync(int tripId);
     }
 }

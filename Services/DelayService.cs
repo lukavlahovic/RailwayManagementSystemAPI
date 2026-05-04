@@ -18,7 +18,8 @@ namespace RailwayManagementSystemAPI.Services
             _context = context;
             _mapper = mapper;
         }
-        public async Task<DelayResponseDto> CreateDelay(CreateDelayDto dto)
+
+        public async Task<DelayResponseDto> CreateDelayAsync(CreateDelayDto dto)
         {
             var trip = await _context.Trip.FindAsync(dto.TripId);
             if (trip == null)
@@ -35,10 +36,10 @@ namespace RailwayManagementSystemAPI.Services
             await _context.Delays.AddAsync(delay);
             await _context.SaveChangesAsync();
 
-            return await GetDelayById(delay.Id);
+            return await GetDelayByIdAsync(delay.Id);
         }
 
-        public async Task<DelayResponseDto> GetDelayById(int id)
+        public async Task<DelayResponseDto> GetDelayByIdAsync(int id)
         {
             var delay = await _context.Delays
                 .Where(d => d.Id == id)
@@ -51,11 +52,11 @@ namespace RailwayManagementSystemAPI.Services
             return delay;
         }
 
-        public async Task<List<DelayResponseDto>> GetDelaysByTrip(int tripId)
+        public async Task<List<DelayResponseDto>> GetDelaysByTripAsync(int tripId)
         {
-            var tripExists = _context.Trip.FindAsync(tripId);
+            var tripExists = await _context.Trip.FindAsync(tripId);
             if (tripExists == null)
-                throw new BadRequestException($"Trip with id {tripId} not found");
+                throw new NotFoundException($"Trip with id {tripId} not found");
 
             var delays = await _context.Delays
                 .Where(d => d.TripId == tripId)

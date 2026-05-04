@@ -5,16 +5,16 @@ namespace RailwayManagementSystemAPI.Services
 {
     public interface ITripService
     {
-        Task<TripResponseDto> CreateTrip(CreateTripDto dto);
+        Task<TripResponseDto> CreateTripAsync(CreateTripDto dto);
 
-        Task<TripResponseDto> GetTripById(int id);
+        Task<TripResponseDto> GetTripByIdAsync(int id);
 
-        Task<List<TripScheduleDto>> GetTripsByStation(int stationId);
+        Task<List<TripScheduleDto>> GetTripsByStationAsync(int stationId);
 
-        Task<List<TripScheduleDto>> GetTripsByDate(DateTime date);
+        Task<List<TripScheduleDto>> GetTripsByDateAsync(DateTime date);
 
-        Task<List<StationScheduleDto>> GetStationSchedule(int stationId);
+        Task<List<StationScheduleDto>> GetStationScheduleAsync(int stationId);
 
-        Task<PagedResult<TripSearchResponseDto>> SearchTrips(TripSearchQuery query);
+        Task<PagedResult<TripSearchResponseDto>> SearchTripsAsync(TripSearchQuery query);
     }
 }
