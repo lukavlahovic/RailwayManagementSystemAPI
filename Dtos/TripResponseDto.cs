@@ -10,5 +10,7 @@
 
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
+        public DateTime? ActualArrivalTime { get; set; }
+
     }
 }

@@ -51,8 +51,9 @@ namespace RailwayManagementSystemAPI.Data
 
             modelBuilder.Entity<Delay>()
                 .HasOne(d => d.Trip)
-                .WithMany()
-                .HasForeignKey(d => d.TripId);
+                .WithMany(t => t.Delays)
+                .HasForeignKey(d => d.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Delay>()
                 .HasOne(d => d.Station)

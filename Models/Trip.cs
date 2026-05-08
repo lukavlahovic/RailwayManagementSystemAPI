@@ -12,5 +12,8 @@
 
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
+
+        public DateTime? ActualArrivalTime { get; set; }
+        public ICollection<Delay> Delays { get; set; } = new List<Delay>();
     }
 }

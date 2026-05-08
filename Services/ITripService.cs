@@ -16,5 +16,9 @@ namespace RailwayManagementSystemAPI.Services
         Task<List<StationScheduleDto>> GetStationScheduleAsync(int stationId);
 
         Task<PagedResult<TripSearchResponseDto>> SearchTripsAsync(TripSearchQuery query);
+
+        Task<TripPositionDto> GetTripPositionAsync(int id);
+
+        Task CompleteTripAsync(int id, CompleteTripDto dto);
     }
 }

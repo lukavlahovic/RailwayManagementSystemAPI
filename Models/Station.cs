@@ -7,5 +7,8 @@
         public string City { get; set; } = null!;
         public string Country { get; set; } = null!;
         public int NumberOfPlatforms { get; set; }
+
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

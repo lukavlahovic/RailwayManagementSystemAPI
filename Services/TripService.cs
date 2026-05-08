@@ -368,5 +368,162 @@ namespace RailwayManagementSystemAPI.Services
 
             return response;
         }
+
+        public async Task<TripPositionDto> GetTripPositionAsync(int id)
+        {
+            var trip = await _context.Trip
+                .Include(t => t.Train)
+                    .ThenInclude(t => t.TrainType)
+                .Include(t => t.Route)
+                    .ThenInclude(r => r.RouteStations)
+                        .ThenInclude(rs => rs.Station)
+                .Include(t => t.Delays)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (trip == null)
+            {
+                _logger.LogWarning("Trip with id {TripId} not found", id);
+                throw new NotFoundException($"Trip with id {id} not found");
+            }
+
+            var now = DateTime.Now;
+            var totalDelayMinutes = trip.Delays.Sum(d => d.DelayMinutes);
+            var orderedStations = trip.Route.RouteStations
+                .OrderBy(rs => rs.Order)
+                .ToList();
+
+            // not departed yet
+            if (now < trip.DepartureTime)
+            {
+                return new TripPositionDto
+                {
+                    TripId = trip.Id,
+                    Train = trip.Train.SerialNumber,
+                    Route = trip.Route.Name,
+                    Status = TripStatus.NotDeparted,
+                    TotalDelayMinutes = totalDelayMinutes,
+                    EstimatedFinalArrival = trip.ArrivalTime.AddMinutes(totalDelayMinutes),
+                    PlannedArrival = trip.ArrivalTime
+                };
+            }
+
+            // already completed
+            if (trip.ActualArrivalTime.HasValue)
+            {
+                return new TripPositionDto
+                {
+                    TripId = trip.Id,
+                    Train = trip.Train.SerialNumber,
+                    Route = trip.Route.Name,
+                    Status = TripStatus.Completed,
+                    TotalDelayMinutes = totalDelayMinutes,
+                    PlannedArrival = trip.ArrivalTime,
+                    ActualArrival = trip.ActualArrivalTime,
+                    ProgressPercent = 100
+                };
+            }
+
+            var elapsedMinutes = (now - trip.DepartureTime).TotalMinutes - totalDelayMinutes;
+            var lastStation = orderedStations.First();
+            var totalTripMinutes = orderedStations.Last().ArrivalOffsetMinutes;
+
+            // check if at a station or in transit
+            foreach (var routeStation in orderedStations)
+            {
+                var arrivalOffset = routeStation.ArrivalOffsetMinutes;
+                var departureOffset = arrivalOffset + routeStation.StopDuration;
+
+                // train is currently stopped at this station
+                if (elapsedMinutes >= arrivalOffset && elapsedMinutes < departureOffset)
+                {
+                    var nextStation = orderedStations
+                        .FirstOrDefault(rs => rs.Order > routeStation.Order);
+
+                    return new TripPositionDto
+                    {
+                        TripId = trip.Id,
+                        Train = trip.Train.SerialNumber,
+                        Route = trip.Route.Name,
+                        Status = TripStatus.AtStation,
+                        LastStation = routeStation.Station.Name,
+                        NextStation = nextStation?.Station.Name,
+                        MinutesToNextStation = nextStation != null
+                            ? nextStation.ArrivalOffsetMinutes - elapsedMinutes
+                            : null,
+                        ProgressPercent = Math.Min(100, (elapsedMinutes / totalTripMinutes) * 100),
+                        TotalDelayMinutes = totalDelayMinutes,
+                        EstimatedFinalArrival = trip.ArrivalTime.AddMinutes(totalDelayMinutes),
+                        PlannedArrival = trip.ArrivalTime
+                    };
+                }
+
+                // train is in transit between this station and the next
+                if (elapsedMinutes >= departureOffset)
+                {
+                    lastStation = routeStation;
+                }
+            }
+
+            // train has passed all stations but not marked complete yet
+            var lastRouteStation = orderedStations.Last();
+            if (elapsedMinutes >= lastRouteStation.ArrivalOffsetMinutes)
+            {
+                return new TripPositionDto
+                {
+                    TripId = trip.Id,
+                    Train = trip.Train.SerialNumber,
+                    Route = trip.Route.Name,
+                    Status = TripStatus.WaitingForCompletion,
+                    LastStation = lastRouteStation.Station.Name,
+                    TotalDelayMinutes = totalDelayMinutes,
+                    PlannedArrival = trip.ArrivalTime,
+                    EstimatedFinalArrival = trip.ArrivalTime.AddMinutes(totalDelayMinutes),
+                    ProgressPercent = 100
+                };
+            }
+
+            // in transit between two stations
+            var nextStop = orderedStations
+                .FirstOrDefault(rs => rs.ArrivalOffsetMinutes > elapsedMinutes);
+
+            return new TripPositionDto
+            {
+                TripId = trip.Id,
+                Train = trip.Train.SerialNumber,
+                Route = trip.Route.Name,
+                Status = TripStatus.InTransit,
+                LastStation = lastStation.Station.Name,
+                NextStation = nextStop?.Station.Name,
+                MinutesToNextStation = nextStop != null
+                    ? nextStop.ArrivalOffsetMinutes - elapsedMinutes
+                    : null,
+                ProgressPercent = Math.Min(100, (elapsedMinutes / totalTripMinutes) * 100),
+                TotalDelayMinutes = totalDelayMinutes,
+                EstimatedFinalArrival = trip.ArrivalTime.AddMinutes(totalDelayMinutes),
+                PlannedArrival = trip.ArrivalTime
+            };
+        }
+
+        public async Task CompleteTripAsync(int id, CompleteTripDto dto)
+        {
+            var trip = await _context.Trip.FindAsync(id);
+            if (trip == null)
+            {
+                _logger.LogWarning("Trip with id {TripId} not found", id);
+                throw new NotFoundException($"Trip with id {id} not found");
+            }
+
+            if (trip.ActualArrivalTime.HasValue)
+                throw new BadRequestException($"Trip with id {id} is already completed");
+
+            if (dto.ActualArrivalTime < trip.DepartureTime)
+                throw new BadRequestException("Actual arrival time cannot be before departure time");
+
+            trip.ActualArrivalTime = dto.ActualArrivalTime;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Trip with id {TripId} marked as completed at {ActualArrivalTime}",
+                id, dto.ActualArrivalTime);
+        }
     }
 }

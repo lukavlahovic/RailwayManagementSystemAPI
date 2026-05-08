@@ -65,5 +65,22 @@ namespace RailwayManagementSystemAPI.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("/api/trips/{id}/position")]
+        public async Task<IActionResult> GetTripPosition(int id)
+        {
+            var response = await _tripService.GetTripPositionAsync(id);
+
+            return Ok(response);
+        }
+
+        [HttpGet("/api/trips/{id}/completed")]
+        [Authorize(Roles = "Admin,Operator")]
+        public async Task<IActionResult> CompleteTrip(int id, [FromBody] CompleteTripDto dto)
+        {
+            await _tripService.CompleteTripAsync(id, dto);
+
+            return NoContent();
+        }
     }
 }
