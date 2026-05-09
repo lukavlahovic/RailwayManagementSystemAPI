@@ -299,6 +299,14 @@ namespace RailwayManagementSystemAPI.Seeding
                     RouteId = routeBelgradeNS.Id,
                     DepartureTime = today.AddHours(17),
                     ArrivalTime = today.AddHours(18)
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-1),
+                    ArrivalTime = today.AddDays(-1).AddHours(2),
+                    ActualArrivalTime = today.AddDays(-1).AddHours(2).AddMinutes(15) // 15 min late
                 }
             };
 
