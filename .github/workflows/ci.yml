@@ -52,10 +52,11 @@ jobs:
           tags: railwayregistry.azurecr.io/railway-api:latest
 
       - name: Restart Azure App Service
-        uses: azure/cli@v2
+        uses: azure/login@v2
         with:
-          azcliversion: latest
-          inlineScript: |
-            az webapp restart --name railway-api-app --resource-group railway-rg
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Restart App Service
+        run: az webapp restart --name railway-api-app --resource-group railway-rg
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
