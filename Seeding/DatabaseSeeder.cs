@@ -24,6 +24,7 @@ namespace RailwayManagementSystemAPI.Seeding
             await SeedTrainsAsync();
             await SeedRoutesAsync();
             await SeedTripsAsync();
+            await SeedDelaysAsync();
         }
 
         private async Task SeedTrainTypesAsync()
@@ -265,19 +266,131 @@ namespace RailwayManagementSystemAPI.Seeding
 
             var trips = new List<Trip>
             {
+                // Belgrade - Subotica route — mix of on time and late
+                new Trip
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-7).AddHours(8),
+                    ArrivalTime = today.AddDays(-7).AddHours(10),
+                    ActualArrivalTime = today.AddDays(-7).AddHours(10) // on time
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-6).AddHours(8),
+                    ArrivalTime = today.AddDays(-6).AddHours(10),
+                    ActualArrivalTime = today.AddDays(-6).AddHours(10).AddMinutes(20) // 20 min late
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-5).AddHours(8),
+                    ArrivalTime = today.AddDays(-5).AddHours(10),
+                    ActualArrivalTime = today.AddDays(-5).AddHours(10).AddMinutes(35) // 35 min late
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain2.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-7).AddHours(12),
+                    ArrivalTime = today.AddDays(-7).AddHours(14),
+                    ActualArrivalTime = today.AddDays(-7).AddHours(14).AddMinutes(10) // 10 min late
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain2.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-6).AddHours(12),
+                    ArrivalTime = today.AddDays(-6).AddHours(14),
+                    ActualArrivalTime = today.AddDays(-6).AddHours(14) // on time
+                },
+                new Trip
+                {
+                    TrainId = highSpeedTrain2.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = today.AddDays(-5).AddHours(12),
+                    ArrivalTime = today.AddDays(-5).AddHours(14),
+                    ActualArrivalTime = today.AddDays(-5).AddHours(14).AddMinutes(45) // 45 min late
+                },
+
+                // Belgrade - Nis route — mostly late
+                new Trip
+                {
+                    TrainId = passengerTrain1.Id,
+                    RouteId = routeBelgradeNis.Id,
+                    DepartureTime = today.AddDays(-7).AddHours(9),
+                    ArrivalTime = today.AddDays(-7).AddHours(12),
+                    ActualArrivalTime = today.AddDays(-7).AddHours(12).AddMinutes(30) // 30 min late
+                },
+                new Trip
+                {
+                    TrainId = passengerTrain1.Id,
+                    RouteId = routeBelgradeNis.Id,
+                    DepartureTime = today.AddDays(-6).AddHours(9),
+                    ArrivalTime = today.AddDays(-6).AddHours(12),
+                    ActualArrivalTime = today.AddDays(-6).AddHours(12).AddMinutes(55) // 55 min late
+                },
+                new Trip
+                {
+                    TrainId = passengerTrain1.Id,
+                    RouteId = routeBelgradeNis.Id,
+                    DepartureTime = today.AddDays(-5).AddHours(9),
+                    ArrivalTime = today.AddDays(-5).AddHours(12),
+                    ActualArrivalTime = today.AddDays(-5).AddHours(12).AddMinutes(20) // 20 min late
+                },
+
+                // Novi Beograd - Novi Sad commuter — mostly on time
+                new Trip
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = today.AddDays(-7).AddHours(7),
+                    ArrivalTime = today.AddDays(-7).AddHours(8),
+                    ActualArrivalTime = today.AddDays(-7).AddHours(8) // on time
+                },
+                new Trip
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = today.AddDays(-7).AddHours(17),
+                    ArrivalTime = today.AddDays(-7).AddHours(18),
+                    ActualArrivalTime = today.AddDays(-7).AddHours(18).AddMinutes(5) // 5 min late
+                },
+                new Trip
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = today.AddDays(-6).AddHours(7),
+                    ArrivalTime = today.AddDays(-6).AddHours(8),
+                    ActualArrivalTime = today.AddDays(-6).AddHours(8) // on time
+                },
+                new Trip
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = today.AddDays(-6).AddHours(17),
+                    ArrivalTime = today.AddDays(-6).AddHours(18),
+                    ActualArrivalTime = today.AddDays(-6).AddHours(18).AddMinutes(15) // 15 min late
+                },
+                new Trip
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = today.AddDays(-5).AddHours(7),
+                    ArrivalTime = today.AddDays(-5).AddHours(8),
+                    ActualArrivalTime = today.AddDays(-5).AddHours(8) // on time
+                },
+
+                // future trips — no ActualArrivalTime
                 new Trip
                 {
                     TrainId = highSpeedTrain1.Id,
                     RouteId = routeBelgradeSubotica.Id,
                     DepartureTime = today.AddHours(8),
                     ArrivalTime = today.AddHours(10)
-                },
-                new Trip
-                {
-                    TrainId = highSpeedTrain2.Id,
-                    RouteId = routeBelgradeSubotica.Id,
-                    DepartureTime = today.AddHours(12),
-                    ArrivalTime = today.AddHours(14)
                 },
                 new Trip
                 {
@@ -290,27 +403,104 @@ namespace RailwayManagementSystemAPI.Seeding
                 {
                     TrainId = commuterTrain.Id,
                     RouteId = routeBelgradeNS.Id,
-                    DepartureTime = today.AddHours(7),
-                    ArrivalTime = today.AddHours(8)
-                },
-                new Trip
-                {
-                    TrainId = commuterTrain.Id,
-                    RouteId = routeBelgradeNS.Id,
                     DepartureTime = today.AddHours(17),
                     ArrivalTime = today.AddHours(18)
-                },
-                new Trip
-                {
-                    TrainId = highSpeedTrain1.Id,
-                    RouteId = routeBelgradeSubotica.Id,
-                    DepartureTime = today.AddDays(-1),
-                    ArrivalTime = today.AddDays(-1).AddHours(2),
-                    ActualArrivalTime = today.AddDays(-1).AddHours(2).AddMinutes(15) // 15 min late
                 }
             };
 
             await _context.Trip.AddRangeAsync(trips);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SeedDelaysAsync()
+        {
+            if (await _context.Delays.AnyAsync())
+                return;
+
+            var trips = await _context.Trip
+                .Where(t => t.ActualArrivalTime != null)
+                .ToListAsync();
+
+            var belgrade = await _context.Stations.FirstAsync(s => s.Name == "Belgrade Center");
+            var noviSad = await _context.Stations.FirstAsync(s => s.Name == "Novi Sad");
+            var nis = await _context.Stations.FirstAsync(s => s.Name == "Nis");
+            var noviBeograd = await _context.Stations.FirstAsync(s => s.Name == "Novi Beograd");
+
+            var delays = new List<Delay>();
+
+            foreach (var trip in trips)
+            {
+                var route = await _context.Routes
+                    .Include(r => r.RouteStations)
+                    .FirstAsync(r => r.Id == trip.RouteId);
+
+                var routeName = route.Name;
+
+                if (routeName == "Belgrade - Subotica")
+                {
+                    // some trips have delays at Belgrade, some at Novi Sad
+                    if (trip.ActualArrivalTime > trip.ArrivalTime)
+                    {
+                        var delayMinutes = (int)(trip.ActualArrivalTime!.Value - trip.ArrivalTime).TotalMinutes;
+
+                        delays.Add(new Delay
+                        {
+                            TripId = trip.Id,
+                            StationId = delayMinutes > 30 ? noviSad.Id : belgrade.Id,
+                            DelayMinutes = delayMinutes,
+                            TypeOfDelay = delayMinutes > 30 ? TypeOfDelay.TrackMaintenance : TypeOfDelay.Technical,
+                            Note = delayMinutes > 30 ? "Track maintenance on Novi Sad section" : "Technical issue at Belgrade",
+                            CreatedAt = trip.DepartureTime.AddMinutes(30)
+                        });
+                    }
+                }
+                else if (routeName == "Belgrade - Nis")
+                {
+                    if (trip.ActualArrivalTime > trip.ArrivalTime)
+                    {
+                        var delayMinutes = (int)(trip.ActualArrivalTime!.Value - trip.ArrivalTime).TotalMinutes;
+
+                        delays.Add(new Delay
+                        {
+                            TripId = trip.Id,
+                            StationId = nis.Id,
+                            DelayMinutes = delayMinutes / 2,
+                            TypeOfDelay = TypeOfDelay.Weather,
+                            Note = "Weather conditions on Nis route",
+                            CreatedAt = trip.DepartureTime.AddMinutes(60)
+                        });
+
+                        delays.Add(new Delay
+                        {
+                            TripId = trip.Id,
+                            StationId = belgrade.Id,
+                            DelayMinutes = delayMinutes / 2,
+                            TypeOfDelay = TypeOfDelay.StationCongestion,
+                            Note = "Station congestion at Belgrade",
+                            CreatedAt = trip.DepartureTime.AddMinutes(10)
+                        });
+                    }
+                }
+                else if (routeName == "Novi Beograd - Novi Sad")
+                {
+                    if (trip.ActualArrivalTime > trip.ArrivalTime)
+                    {
+                        var delayMinutes = (int)(trip.ActualArrivalTime!.Value - trip.ArrivalTime).TotalMinutes;
+
+                        delays.Add(new Delay
+                        {
+                            TripId = trip.Id,
+                            StationId = noviBeograd.Id,
+                            DelayMinutes = delayMinutes,
+                            TypeOfDelay = TypeOfDelay.PassengerIncident,
+                            Note = "Passenger incident at Novi Beograd",
+                            CreatedAt = trip.DepartureTime.AddMinutes(5)
+                        });
+                    }
+                }
+            }
+
+            await _context.Delays.AddRangeAsync(delays);
             await _context.SaveChangesAsync();
         }
     }
