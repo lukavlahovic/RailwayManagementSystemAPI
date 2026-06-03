@@ -7,6 +7,13 @@ appsettings.json
 appsettings.Development.json
 .env
 
+RailwayAnalytics/venv/
+RailwayAnalytics/__pycache__/
+*.pyc
+RailwayAnalytics/output/*.html
+RailwayAnalytics/output/*.pdf
+RailwayAnalytics/config.py
+
 # User-specific files
 *.rsuser
 *.suo
