@@ -5,9 +5,23 @@ from config import CONNECTION_STRING
 from analysis import delays_by_route, delays_by_station, delays_by_train, on_time_performance, delays_by_type
 from report import generator
 
+import argparse
+
+parser = argparse.ArgumentParser(description="Railway Analytics Report Generator")
+parser.add_argument("--date", type=str, help="Date to generate report for (YYYY-MM-DD)", default=None)
+parser.add_argument("--format", type=str, choices=["html", "pdf", "both"], default="both")
+args = parser.parse_args()
+
 engine = sa.create_engine(CONNECTION_STRING)
 
 trips = pd.read_sql("SELECT * FROM Trip", engine)
+if args.date:
+    trips = trips[trips["ActualArrivalTime"].dt.date == pd.to_datetime(args.date).date()]
+
+if len(trips) == 0:
+    print(f"No completed trips found for {args.date}")
+    exit(1)
+    
 delays = pd.read_sql("SELECT * FROM Delays", engine)
 routes = pd.read_sql("SELECT * FROM Routes", engine)
 stations = pd.read_sql("SELECT * FROM Stations", engine)
@@ -65,4 +79,4 @@ chart_delay_type = delays_by_type.create_chart(delays_by_type_of_delay)
 
 generator.generate(completed_trips, delays, delay_routes, delays_station,
                    delays_train, delays_by_type_of_delay, chart_route, chart_station, 
-                   chart_trains, chart_route_on_time, chart_delay_type)
+                   chart_trains, chart_route_on_time, chart_delay_type, args.format, args.date)

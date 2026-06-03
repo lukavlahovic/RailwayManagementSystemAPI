@@ -5,7 +5,7 @@ from weasyprint import HTML
 
 def generate(completed_trips, delays, delay_routes, delays_by_station, 
              delays_by_train, delays_by_type_of_delay, chart_route, chart_station, 
-             chart_trains, chart_route_on_time, chart_delay_type):
+             chart_trains, chart_route_on_time, chart_delay_type, format="both", date_of_report=None):
 
     os.makedirs("output", exist_ok=True)
 
@@ -138,10 +138,13 @@ def generate(completed_trips, delays, delay_routes, delays_by_station,
         delays_by_type_of_delay=delays_by_type_of_delay
     )
 
-    with open("output/report.html", "w", encoding="utf-8") as f:
+    filename = f"report_{date_of_report}" if date_of_report else "report"
+
+    with open(f"output/{filename}.html", "w", encoding="utf-8") as f:
         f.write(html)
 
     print("Report saved to output/report.html")
 
-    HTML(filename="output/report.html").write_pdf("output/report.pdf")
-    print("PDF saved to output/report.pdf")
+    if(format in ("pdf", "both")):
+        HTML(filename=f"output/{filename}.html").write_pdf(f"output/{filename}.pdf")
+        print("PDF saved to output/report.pdf")
