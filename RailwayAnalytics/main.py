@@ -15,14 +15,16 @@ args = parser.parse_args()
 engine = sa.create_engine(CONNECTION_STRING)
 
 trips = pd.read_sql("SELECT * FROM Trip", engine)
+delays = pd.read_sql("SELECT * FROM Delays", engine)
+
 if args.date:
-    trips = trips[trips["ActualArrivalTime"].dt.date == pd.to_datetime(args.date).date()]
+    trips = trips[trips["ArrivalTime"].dt.date == pd.to_datetime(args.date).date()]
+    delays = delays[delays["TripId"].isin(trips["Id"])]
 
 if len(trips) == 0:
-    print(f"No completed trips found for {args.date}")
+    print(f"No trips found for {args.date}")
     exit(1)
     
-delays = pd.read_sql("SELECT * FROM Delays", engine)
 routes = pd.read_sql("SELECT * FROM Routes", engine)
 stations = pd.read_sql("SELECT * FROM Stations", engine)
 trains = pd.read_sql("SELECT * FROM Trains", engine)
