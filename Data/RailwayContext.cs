@@ -15,6 +15,7 @@ namespace RailwayManagementSystemAPI.Data
         public DbSet<Models.Trip> Trip { get; set; }
         public DbSet<Models.Delay> Delays { get; set; }
         public DbSet<Models.User> Users { get; set; }
+        public DbSet<Models.Schedule> Schedules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +71,16 @@ namespace RailwayManagementSystemAPI.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
+
+            modelBuilder.Entity<Schedule>()
+                .HasOne(s => s.Train)
+                .WithMany()
+                .HasForeignKey(s => s.TrainId);
+
+            modelBuilder.Entity<Schedule>()
+                .HasOne(s => s.Route)
+                .WithMany()
+                .HasForeignKey(s => s.RouteId);
         }
     }
 }

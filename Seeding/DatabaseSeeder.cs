@@ -25,6 +25,7 @@ namespace RailwayManagementSystemAPI.Seeding
             await SeedRoutesAsync();
             await SeedTripsAsync();
             await SeedDelaysAsync();
+            await SeedSchedulesAsync();
         }
 
         private async Task SeedTrainTypesAsync()
@@ -382,29 +383,6 @@ namespace RailwayManagementSystemAPI.Seeding
                     DepartureTime = today.AddDays(-5).AddHours(7),
                     ArrivalTime = today.AddDays(-5).AddHours(8),
                     ActualArrivalTime = today.AddDays(-5).AddHours(8) // on time
-                },
-
-                // future trips — no ActualArrivalTime
-                new Trip
-                {
-                    TrainId = highSpeedTrain1.Id,
-                    RouteId = routeBelgradeSubotica.Id,
-                    DepartureTime = today.AddHours(8),
-                    ArrivalTime = today.AddHours(10)
-                },
-                new Trip
-                {
-                    TrainId = passengerTrain1.Id,
-                    RouteId = routeBelgradeNis.Id,
-                    DepartureTime = today.AddHours(9),
-                    ArrivalTime = today.AddHours(12)
-                },
-                new Trip
-                {
-                    TrainId = commuterTrain.Id,
-                    RouteId = routeBelgradeNS.Id,
-                    DepartureTime = today.AddHours(17),
-                    ArrivalTime = today.AddHours(18)
                 }
             };
 
@@ -481,7 +459,7 @@ namespace RailwayManagementSystemAPI.Seeding
                         });
                     }
                 }
-                else if (routeName == "Novi Beograd - Novi Sad")
+                else if (routeName == "Belgrade - Novi Sad")
                 {
                     if (trip.ActualArrivalTime > trip.ArrivalTime)
                     {
@@ -501,6 +479,93 @@ namespace RailwayManagementSystemAPI.Seeding
             }
 
             await _context.Delays.AddRangeAsync(delays);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SeedSchedulesAsync()
+        {
+            if(await _context.Schedules.AnyAsync())
+                return;
+
+            var highSpeedTrain1 = await _context.Trains.FirstAsync(t => t.SerialNumber == "SRB-HS-001");
+            var highSpeedTrain2 = await _context.Trains.FirstAsync(t => t.SerialNumber == "SRB-HS-002");
+            var passengerTrain1 = await _context.Trains.FirstAsync(t => t.SerialNumber == "SRB-PS-001");
+            var commuterTrain = await _context.Trains.FirstAsync(t => t.SerialNumber == "SRB-CM-001");
+
+            var routeBelgradeSubotica = await _context.Routes.FirstAsync(r => r.Name == "Belgrade - Subotica");
+            var routeBelgradeNis = await _context.Routes.FirstAsync(r => r.Name == "Belgrade - Nis");
+            var routeBelgradeNS = await _context.Routes.FirstAsync(r => r.Name == "Belgrade - Novi Sad");
+
+            var today = DateTime.Today;
+
+            var schedules = new List<Schedule>
+            {
+                new Schedule
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = new TimeSpan(8, 0, 0),
+                    ScheduleType = ScheduleType.Workday,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = highSpeedTrain2.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = new TimeSpan(12, 0, 0),
+                    ScheduleType = ScheduleType.Workday,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = highSpeedTrain1.Id,
+                    RouteId = routeBelgradeSubotica.Id,
+                    DepartureTime = new TimeSpan(10, 0, 0),
+                    ScheduleType = ScheduleType.Weekend,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = passengerTrain1.Id,
+                    RouteId = routeBelgradeNis.Id,
+                    DepartureTime = new TimeSpan(9, 0, 0),
+                    ScheduleType = ScheduleType.Daily,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = new TimeSpan(7, 0, 0),
+                    ScheduleType = ScheduleType.Workday,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = new TimeSpan(17, 0, 0),
+                    ScheduleType = ScheduleType.Workday,
+                    ValidFrom = today,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    TrainId = commuterTrain.Id,
+                    RouteId = routeBelgradeNS.Id,
+                    DepartureTime = new TimeSpan(10, 0, 0),
+                    ScheduleType = ScheduleType.Weekend,
+                    ValidFrom = today,
+                    IsActive = true
+                }
+            };
+
+            await _context.Schedules.AddRangeAsync(schedules);
             await _context.SaveChangesAsync();
         }
     }

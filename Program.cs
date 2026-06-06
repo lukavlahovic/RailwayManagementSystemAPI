@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RailwayManagementSystemAPI.BackgroundServices;
 using RailwayManagementSystemAPI.Configuration;
 using RailwayManagementSystemAPI.Data;
 using RailwayManagementSystemAPI.Middleware;
@@ -32,6 +33,9 @@ builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IDelayService, DelayService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DatabaseSeeder>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+
+builder.Services.AddHostedService<TripGeneratorService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -49,6 +49,12 @@ namespace RailwayManagementSystemAPI.Mapping
             CreateMap<CreateDelayDto, Delay>();
             CreateMap<Delay, DelayResponseDto>()
                 .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.Station.Name));
+
+            // Schedule
+            CreateMap<CreateScheduleDto, Schedule>();
+            CreateMap<Schedule, ScheduleResponseDto>()
+                .ForMember(dest => dest.Train, opt => opt.MapFrom(src => src.Train.SerialNumber))
+                .ForMember(dest => dest.Route, opt => opt.MapFrom(src => src.Route.Name));
         }
     }
 }
