@@ -74,7 +74,7 @@ namespace RailwayManagementSystemAPI.Controllers
             return Ok(response);
         }
 
-        [HttpGet("/api/trips/{id}/completed")]
+        [HttpPut("/api/trips/{id}/completed")]
         [Authorize(Roles = "Admin,Operator")]
         public async Task<IActionResult> CompleteTrip(int id, [FromBody] CompleteTripDto dto)
         {

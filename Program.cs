@@ -19,6 +19,7 @@ builder.Services.AddDbContext<RailwayContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -34,8 +35,10 @@ builder.Services.AddScoped<IDelayService, DelayService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddHostedService<TripGeneratorService>();
+builder.Services.AddHostedService<DailyReportService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
