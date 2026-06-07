@@ -1,6 +1,6 @@
 # 🚆 Railway Management System API
 
-A backend REST API for managing railway operations including train scheduling, station management, route planning, and delay tracking. Built with ASP.NET Core following a layered architecture with separation of concerns and deployed to Azure.
+A backend REST API for managing railway operations including train scheduling, station management, route planning, delay tracking and automated analytics reporting. Built with ASP.NET Core using a layered architecture with separation of concerns, deployed to Azure.
 
 ---
 
@@ -13,7 +13,8 @@ A backend REST API for managing railway operations including train scheduling, s
 - **Entity Framework Core**
 - **AutoMapper**
 - **FluentValidation**
-- **JWT Authentication**
+- **JWT Authentication (BCrypt password hashing)**
+- **MailKit (email)**
 - **Swagger / OpenAPI**
 
 ### Testing
@@ -54,6 +55,7 @@ Request → Middleware → Controller → Service → DbContext → Database
 - **Mapping** — AutoMapper profiles for entity ↔ DTO conversion
 - **Middleware** — global exception handling returning consistent ProblemDetails responses
 - **Exceptions** — custom exception types (NotFoundException, BadRequestException)
+- **BackgroundServices** — hosted services for trip generation and daily report emails
 
 ### Project Structure
 ```
@@ -61,6 +63,9 @@ RailwayManagementSystemAPI/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                    ← GitHub Actions CI/CD pipeline
+├── BackgroundServices/
+│   ├── TripGeneratorService.cs       ← generates trips daily from schedules
+│   └── DailyReportService.cs        ← generates and emails daily report
 ├── Controllers/
 │   ├── AuthController.cs
 │   ├── StationController.cs
@@ -68,7 +73,9 @@ RailwayManagementSystemAPI/
 │   ├── TrainTypeController.cs
 │   ├── RouteController.cs
 │   ├── TripController.cs
-│   └── DelayController.cs
+│   ├── DelayController.cs
+│   ├── ScheduleController.cs
+│   └── ReportController.cs
 ├── Services/
 │   ├── IAuthService.cs / AuthService.cs
 │   ├── IStationService.cs / StationService.cs
@@ -76,7 +83,9 @@ RailwayManagementSystemAPI/
 │   ├── ITrainTypeService.cs / TrainTypeService.cs
 │   ├── IRouteService.cs / RouteService.cs
 │   ├── ITripService.cs / TripService.cs
-│   └── IDelayService.cs / DelayService.cs
+│   ├── IDelayService.cs / DelayService.cs
+│   ├── IScheduleService.cs / ScheduleService.cs
+│   └── IEmailService.cs / EmailService.cs
 ├── Models/
 │   ├── User.cs
 │   ├── Station.cs
@@ -85,7 +94,8 @@ RailwayManagementSystemAPI/
 │   ├── Route.cs
 │   ├── RouteStation.cs
 │   ├── Trip.cs
-│   └── Delay.cs
+│   ├── Delay.cs
+│   └── Schedule.cs
 ├── Dtos/
 │   ├── StationDto.cs / StationResponseDto.cs
 │   ├── CreateTrainDto.cs / TrainResponseDto.cs
@@ -100,7 +110,8 @@ RailwayManagementSystemAPI/
 │   ├── CreateDelayDto.cs / DelayResponseDto.cs
 │   ├── StationScheduleDto.cs
 │   ├── PaginationQuery.cs
-│   └── PagedResult.cs
+│   ├── PagedResult.cs
+│   └── CreateScheduleDto.cs / ScheduleResponseDto.cs
 ├── Validators/
 │   ├── StationDtoValidator.cs
 │   ├── CreateTrainDtoValidator.cs
@@ -111,7 +122,8 @@ RailwayManagementSystemAPI/
 │   ├── CreateDelayDtoValidator.cs
 │   ├── RegisterDtoValidator.cs
 │   ├── LoginDtoValidator.cs
-│   └── CompleteTripDtoValidator.cs
+│   ├── CompleteTripDtoValidator.cs
+|   └── CreateScheduleDtoValidator.cs
 ├── Mapping/
 │   └── MappingProfile.cs
 ├── Middleware/
@@ -120,7 +132,9 @@ RailwayManagementSystemAPI/
 │   ├── NotFoundException.cs
 │   └── BadRequestException.cs
 ├── Configuration/
-│   └── JwtSettings.cs
+│   ├── JwtSettings.cs
+│   ├── PythonSettings.cs
+│   └── EmailSettings.cs
 ├── Seeding/
 │   └── DatabaseSeeder.cs
 ├── Data/
@@ -146,8 +160,17 @@ RailwayManagementSystemAPI/
 ├── RailwayAnalytics/
 │   ├── main.py
 │   ├── config.py
+│   ├── config.example.py
 │   ├── requirements.txt
-│   └── analysis/
+│   ├── utils.py
+│   ├── analysis/
+│   │   ├── delays_by_route.py
+│   │   ├── delays_by_station.py
+│   │   ├── delays_by_train.py
+│   │   ├── on_time_performance.py
+│   │   └── delays_by_type.py
+│   └── report/
+│       └── generator.py
 ├── Dockerfile
 ├── docker-compose.yml
 └── .dockerignore
@@ -218,15 +241,28 @@ Junction table linking routes to stations with timing data.
 | ArrivalOffsetMinutes | int | Minutes from trip departure to arrival at this station |
 | StopDuration | int | Minutes the train stops at this station |
 
+### Schedule
+Defines a recurring timetable for a train on a route.
+| Field | Type | Description |
+|-------|------|-------------|
+| Id | int | Primary key |
+| TrainId | int | FK → Train |
+| RouteId | int | FK → Route |
+| DepartureTime | TimeSpan | Time of departure (no date) |
+| ScheduleType | enum | Daily, Workday, Weekend |
+| ValidFrom | DateTime | When schedule becomes active |
+| ValidTo | DateTime? | When schedule expires (null = indefinite) |
+| IsActive | bool | Emergency on/off switch |
+
 ### Trip
-A scheduled journey of a train along a route.
+A scheduled journey of a train along a route. Generated automatically from schedules by `TripGeneratorService` at midnight.
 | Field | Type | Description |
 |-------|------|-------------|
 | Id | int | Primary key |
 | TrainId | int | FK → Train |
 | RouteId | int | FK → Route |
 | DepartureTime | DateTime | Scheduled departure |
-| ArrivalTime | DateTime | Scheduled arrival |
+| ArrivalTime | DateTime | Scheduled arrival (calculated from last station offset) |
 | ActualArrivalTime | DateTime? | Actual arrival time, set when trip is completed |
 
 ### Delay
@@ -267,6 +303,8 @@ Records a delay incident at a specific station during a trip.
 | GET | `/api/train-types` | None | Get all train types |
 | GET | `/api/train-types/{id}` | None | Get train type by ID |
 | POST | `/api/train-types` | Admin | Create a train type |
+| PUT | `/api/train-types/{id}` | Admin | Update a train type |
+| DELETE | `/api/train-types/{id}` | Admin | Delete a train type |
 
 ### Trains — `/api/trains`
 | Method | Endpoint | Auth | Description |
@@ -286,10 +324,20 @@ Records a delay incident at a specific station during a trip.
 | PUT | `/api/routes/{id}` | Admin | Update a route |
 | DELETE | `/api/routes/{id}` | Admin | Delete a route |
 
+### Schedules — `/api/schedules`
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/schedules` | None | Get all schedules (paginated) |
+| GET | `/api/schedules/{id}` | None | Get schedule by ID |
+| POST | `/api/schedules` | Admin | Create a schedule |
+| PUT | `/api/schedules/{id}` | Admin | Update a schedule |
+| DELETE | `/api/schedules/{id}` | Admin | Delete a schedule |
+| PATCH | `/api/schedules/{id}/toggle` | Admin | Toggle schedule active/inactive |
+
 ### Trips — `/api/trips`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/trips` | Admin / Operator | Create a trip |
+| POST | `/api/trips` | Admin / Operator | Create a trip manually |
 | GET | `/api/trips/{id}` | None | Get trip by ID |
 | GET | `/api/trips/{id}/position` | None | Get real-time position of a trip |
 | PUT | `/api/trips/{id}/complete` | Admin / Operator | Mark trip as completed with actual arrival time |
@@ -320,6 +368,13 @@ NotDeparted → AtStation / InTransit → WaitingForCompletion → Completed
 | POST | `/api/delays` | Admin / Operator | Record a new delay |
 | GET | `/api/delays/{id}` | None | Get delay by ID |
 | GET | `/api/delays/trip/{tripId}` | None | Get all delays for a trip |
+
+### Reports — `/api/reports`
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/reports/daily?date={date}&format={format}` | Admin | Generate and download daily analytics report |
+
+Report format can be `pdf` or `html`. The endpoint calls the Python analytics module and returns the generated file as a download.
 
 ---
 
@@ -371,6 +426,7 @@ FluentValidation is used for all input DTOs. Key rules include:
 - **TrainType** — name required; max speed 1-500; capacity 1-2000; valid enum value
 - **Train** — positive TrainTypeId; serial number required, max 50 chars
 - **Route** — name required; at least one station; no duplicate orders or duplicate stations; offsets must increase; first station offset must be 0
+- **Schedule** — positive TrainId/RouteId; valid enum; ValidFrom required; ValidTo must be after ValidFrom when provided
 - **Trip** — departure must be in the future; arrival must be after departure
 - **Delay** — delay must be at least 1 minute; valid enum; note max 250 chars
 - **Auth** — password minimum 8 chars with uppercase letter and number
@@ -398,6 +454,20 @@ The `GET /api/trips/{id}/position` endpoint calculates where a train currently i
 - Total delay minutes recorded for the trip
 
 Returns one of five statuses: `NotDeparted`, `AtStation`, `InTransit`, `WaitingForCompletion`, `Completed`
+
+---
+
+## 📅 Automatic Trip Generation
+
+The `TripGeneratorService` background service runs daily at midnight and automatically creates trips for the next day based on active schedules:
+
+- **Daily** schedules run every day
+- **Workday** schedules run Monday–Friday
+- **Weekend** schedules run Saturday–Sunday
+
+`ArrivalTime` is calculated automatically from the last station's `ArrivalOffsetMinutes` on the route. Duplicate prevention ensures trips are never created twice for the same schedule on the same date.
+
+Schedules can be instantly suspended via `PATCH /api/schedules/{id}/toggle` without affecting existing trips.
 
 ---
 
@@ -442,6 +512,7 @@ SQL Server available at `localhost:1434` (connect with SSMS using SQL Server Aut
 ### Prerequisites
 - .NET 8 SDK
 - SQL Server
+- Python 3.13+
 - Visual Studio 2022 or VS Code
 
 ### Setup
@@ -452,16 +523,41 @@ SQL Server available at `localhost:1434` (connect with SSMS using SQL Server Aut
   "DefaultConnection": "Server=YOUR_SERVER;Database=RailwayDB;Trusted_Connection=True;"
 }
 ```
-3. Apply migrations:
+3. Configure Python settings in `appsettings.json`:
+```json
+"PythonSettings": {
+  "PythonPath": "python",
+  "ScriptPath": "RailwayAnalytics/main.py"
+}
+```
+4. Configure email settings in `appsettings.json`:
+```json
+"EmailSettings": {
+  "SmtpHost": "smtp.gmail.com",
+  "SmtpPort": 587,
+  "SenderEmail": "your-gmail@gmail.com",
+  "SenderPassword": "your-app-password",
+  "SenderName": "Railway Management System",
+  "Recipients": ["recipient@gmail.com"]
+}
+```
+5. Apply migrations:
 ```
 dotnet ef database update
 ```
-4. Run the project:
+6. Set up Python analytics:
+```bash
+cd RailwayAnalytics
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+7. Run the project:
 ```
 dotnet run
 ```
 
-The database seeder runs automatically on startup and populates the database with sample data including stations, trains, routes, trips and delays.
+The database seeder runs automatically on startup and populates the database with sample data.
 
 ---
 
@@ -482,7 +578,7 @@ Every push to `master`:
 
 ## 📊 Python Analytics Module
 
-A standalone Python module that connects directly to the SQL Server database and generates an HTML and PDF report analyzing:
+A standalone Python module that connects directly to the SQL Server database and generates HTML and PDF reports analyzing:
 
 - Delays by route — total and average delay minutes per route
 - Delays by station — most problematic stations
@@ -490,13 +586,18 @@ A standalone Python module that connects directly to the SQL Server database and
 - On-time percentage by route
 - Most common delay reasons
 
-### Setup
+Reports can be generated manually or via the `.NET` API endpoint. A `DailyReportService` background service automatically generates and emails the previous day's report every midnight.
+
+### Manual usage
 ```bash
 cd RailwayAnalytics
-python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+
+# full report
 python main.py
+
+# report for specific date
+python main.py --date 2026-05-09 --format pdf
 ```
 
 Report is generated in `RailwayAnalytics/output/`.

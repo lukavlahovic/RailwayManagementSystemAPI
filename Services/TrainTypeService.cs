@@ -55,5 +55,41 @@ namespace RailwayManagementSystemAPI.Services
 
             return trainType;
         }
+
+        public async Task UpdateTrainTypeAsync(int id, CreateTrainTypeDto dto)
+        {
+            var rowsAffect = await _context.TrainTypes
+                .Where(tt => tt.Id == id)
+                .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(tt => tt.Name, dto.Name)
+                    .SetProperty(tt => tt.MaxSpeed, dto.MaxSpeed)
+                    .SetProperty(tt => tt.Capacity, dto.Capacity)
+                    .SetProperty(tt => tt.Manufacturer, dto.Manufacturer)
+                    .SetProperty(tt => tt.Type, dto.Type)
+                );
+
+            if (rowsAffect == 0)
+            {
+                _logger.LogWarning("TrainType with id {TrainTypeId} was not updated", id);
+                throw new NotFoundException($"TrainType with id {id} not found");
+            }
+
+            _logger.LogInformation("TrainType with id {TrainTypeId} was updated", id);
+        }
+
+        public async Task DeleteTrainTypeAsync(int id)
+        {
+            var rowsAffect = await _context.TrainTypes
+                .Where(tt => tt.Id == id)
+                .ExecuteDeleteAsync();
+
+            if (rowsAffect == 0)
+            {
+                _logger.LogWarning("TrainType with id {TrainTypeId} was not deleted", id);
+                throw new NotFoundException($"TrainType with id {id} not found");
+            }
+
+            _logger.LogInformation("TrainType with id {TrainTypeId} was deleted", id);
+        }
     }
 }

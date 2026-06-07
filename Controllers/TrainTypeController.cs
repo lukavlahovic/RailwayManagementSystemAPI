@@ -55,5 +55,23 @@ namespace RailwayManagementSystemAPI.Controllers
 
             return Ok(trainType);
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateTrainType(int id,[FromBody] CreateTrainTypeDto dto)
+        {
+            await _trainTypeService.UpdateTrainTypeAsync(id, dto);
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTrainType(int id)
+        {
+            await _trainTypeService.DeleteTrainTypeAsync(id);
+
+            return NoContent();
+        }
     }
 }
